@@ -1,6 +1,6 @@
 import type { GetStaticProps, NextPage } from "next";
 import { api } from "~/utils/api";
-import { PageBase } from "../components/PageBase";
+import { PageBase } from "../../components/PageBase";
 import DocViewer, { DocViewerRenderers } from "@cyntler/react-doc-viewer";
 
 export const FilePage: NextPage<{ uid: string }> = ({ uid }) => {

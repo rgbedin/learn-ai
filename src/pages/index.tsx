@@ -1,8 +1,8 @@
 import axios from "axios";
 import { useRef } from "react";
 import { api } from "~/utils/api";
-import { FileCard } from "./components/FileCard";
-import { PageBase } from "./components/PageBase";
+import { FileCard } from "../components/FileCard";
+import { PageBase } from "../components/PageBase";
 import { useRouter } from "next/router";
 
 export default function Home() {
