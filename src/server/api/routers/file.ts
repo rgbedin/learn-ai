@@ -7,6 +7,7 @@ import { prisma } from "~/server/db";
 import axios from "axios";
 import pdf from "pdf-parse";
 import { promptLongText } from "~/server/utils/ai";
+import { type File } from "@prisma/client";
 
 const BUCKET_NAME = "learn-ai-m93";
 
@@ -49,23 +50,63 @@ const extractAndStoreText = async (key: string) => {
     },
   });
 
-  const downloadUrl = await getDownloadUrl(key);
+  const downloadAsBuffer = async () => {
+    const downloadUrl = await getDownloadUrl(key);
 
-  const response = await axios.get<Buffer>(downloadUrl, {
-    responseType: "arraybuffer",
-  });
+    const response = await axios.get<Buffer>(downloadUrl, {
+      responseType: "arraybuffer",
+    });
+
+    return response.data;
+  };
 
   let text = null;
 
   if (file.type === "application/pdf") {
-    const thePdf = await pdf(response.data);
+    const thePdf = await pdf(await downloadAsBuffer());
     text = thePdf.text;
   } else if (
     file.type ===
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
   ) {
-    const result = await mammoth.extractRawText({ buffer: response.data });
+    const result = await mammoth.extractRawText({
+      buffer: await downloadAsBuffer(),
+    });
     text = result.value;
+  } else if (file.type.includes("image")) {
+    const textract = new AWS.Textract();
+
+    const promise = new Promise<void>((resolve) => {
+      textract.detectDocumentText(
+        {
+          Document: {
+            S3Object: {
+              Bucket: BUCKET_NAME,
+              Name: key,
+            },
+          },
+        },
+        (err, data) => {
+          if (err) {
+            throw new TRPCError({
+              code: "INTERNAL_SERVER_ERROR",
+              message: "Error extracting text from image",
+              cause: err?.message,
+            });
+          }
+
+          if (data?.Blocks) {
+            text = data.Blocks.filter((block) => block.BlockType === "LINE")
+              .map((block) => block.Text)
+              .join("\n");
+          }
+
+          resolve();
+        },
+      );
+    });
+
+    await promise;
   } else {
     throw new TRPCError({
       code: "BAD_REQUEST",
@@ -79,6 +120,34 @@ const extractAndStoreText = async (key: string) => {
     },
     data: {
       text,
+    },
+  });
+};
+
+const hydrateSummaries = async (file: File) => {
+  const theFile = await prisma.file.findUniqueOrThrow({
+    where: {
+      uid: file.uid,
+    },
+  });
+
+  const summaries = await promptLongText(
+    theFile.text!,
+    "Create two summaries for the file. The first one should be a few paragraphs long. The second one should be a single short sentence with a maximum of 10 words. Reply to this message in a JSON format. Use the key 'summary' for the first summary and 'shortSummary' for the second summary.",
+  );
+
+  const parsedSummaries = JSON.parse(summaries) as {
+    summary: string;
+    shortSummary: string;
+  };
+
+  await prisma.file.update({
+    where: {
+      uid: file.uid,
+    },
+    data: {
+      summary: parsedSummaries.summary,
+      shortSummary: parsedSummaries.shortSummary,
     },
   });
 };
@@ -103,6 +172,8 @@ export const fileRouter = createTRPCRouter({
       });
 
       await extractAndStoreText(input.key);
+
+      void hydrateSummaries(file);
 
       return file;
     }),

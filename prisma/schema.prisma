@@ -19,4 +19,5 @@ model File {
   type      String
   text      String?   @db.LongText
   summary   String?   @db.MediumText
+  shortSummary String? @db.Text
 }

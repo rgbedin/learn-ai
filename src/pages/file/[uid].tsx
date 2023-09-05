@@ -34,7 +34,13 @@ export const FilePage: NextPage<{ uid: string }> = ({ uid }) => {
             {file?.type !== "application/pdf" && (
               <DocViewer
                 prefetchMethod="GET"
-                documents={[{ uri: downloadUrl }]}
+                documents={[
+                  {
+                    uri: downloadUrl,
+                    fileType: file?.type,
+                    fileName: file?.name,
+                  },
+                ]}
                 pluginRenderers={DocViewerRenderers}
               />
             )}
@@ -50,12 +56,7 @@ export const FilePage: NextPage<{ uid: string }> = ({ uid }) => {
           </>
         )}
 
-        {summary && (
-          <div>
-            <span>Summary:</span>
-            <div>{summary}</div>
-          </div>
-        )}
+        {summary && <div className="whitespace-pre-line">{summary}</div>}
       </PageBase>
     </>
   );
