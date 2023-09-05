@@ -1,6 +1,7 @@
 import type { GetStaticProps, NextPage } from "next";
 import { api } from "~/utils/api";
 import { PageBase } from "../components/PageBase";
+import DocViewer, { DocViewerRenderers } from "@cyntler/react-doc-viewer";
 
 export const FilePage: NextPage<{ uid: string }> = ({ uid }) => {
   const { data: file } = api.file.getFileByUid.useQuery(uid);
@@ -29,12 +30,24 @@ export const FilePage: NextPage<{ uid: string }> = ({ uid }) => {
     <>
       <PageBase showGoBack>
         {downloadUrl && (
-          <object
-            data={downloadUrl}
-            type={file?.type}
-            width="100%"
-            height="100%"
-          />
+          <>
+            {file?.type !== "application/pdf" && (
+              <DocViewer
+                prefetchMethod="GET"
+                documents={[{ uri: downloadUrl }]}
+                pluginRenderers={DocViewerRenderers}
+              />
+            )}
+
+            {file?.type === "application/pdf" && (
+              <object
+                data={downloadUrl}
+                type={file?.type}
+                width="100%"
+                height="100%"
+              />
+            )}
+          </>
         )}
 
         {summary && (

@@ -37,10 +37,12 @@ export async function promptLongText(text: string, prompt: string) {
 
   // Create the chat history and query
   console.debug("Prompting OpenAI");
+
   const timeNow = new Date().getTime();
   const result = await convInterface.call({
     question: prompt,
   });
+
   console.debug("OpenAI took", new Date().getTime() - timeNow, "ms");
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any

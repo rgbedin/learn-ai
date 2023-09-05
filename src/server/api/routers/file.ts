@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { createTRPCRouter, privateProcedure } from "~/server/api/trpc";
 import AWS from "aws-sdk";
+import * as mammoth from "mammoth";
 import { TRPCError } from "@trpc/server";
 import { prisma } from "~/server/db";
 import axios from "axios";
@@ -54,17 +55,30 @@ const extractAndStoreText = async (key: string) => {
     responseType: "arraybuffer",
   });
 
-  const thePdf = await pdf(response.data);
+  let text = null;
 
-  console.debug(thePdf.text);
-  console.debug("PDF length", thePdf.text.length);
+  if (file.type === "application/pdf") {
+    const thePdf = await pdf(response.data);
+    text = thePdf.text;
+  } else if (
+    file.type ===
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+  ) {
+    const result = await mammoth.extractRawText({ buffer: response.data });
+    text = result.value;
+  } else {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "File type not supported",
+    });
+  }
 
   await prisma.file.update({
     where: {
       uid: file.uid,
     },
     data: {
-      text: thePdf.text,
+      text,
     },
   });
 };
