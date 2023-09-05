@@ -62,7 +62,12 @@ export default function Home() {
   return (
     <PageBase>
       <span>Upload File</span>
-      <input ref={fileInputRef} type="file" accept=".pdf, .docx, .png, .jpeg" />
+      <input
+        ref={fileInputRef}
+        type="file"
+        className="flex-shrink-0"
+        accept=".pdf, .docx, .png, .jpeg"
+      />
       <button
         className="rounded-md border-gray-400 bg-slate-100 p-2"
         onClick={() => void onUpload()}
