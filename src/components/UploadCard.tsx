@@ -102,7 +102,7 @@ export const UploadCard: React.FC = () => {
 
           setFile(file);
         }}
-        accept=".pdf, .docx, .png, .jpeg"
+        accept=".pdf, .docx, .png, .jpeg, .m4a, .mp3"
       />
 
       {!file && !isUploading && (
@@ -156,7 +156,7 @@ export const UploadCard: React.FC = () => {
           <div className="mb-4 flex h-2 overflow-hidden rounded bg-[#002f4947] text-xs">
             <div
               style={{ width: `${uploadProgress}%` }}
-              className="transition-width flex flex-col justify-center whitespace-nowrap bg-[#003049]  text-center text-white shadow-none"
+              className="flex flex-col justify-center whitespace-nowrap bg-[#003049] text-center  text-white shadow-none transition-width"
             ></div>
           </div>
         </div>

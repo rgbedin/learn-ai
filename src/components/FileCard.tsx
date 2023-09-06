@@ -3,9 +3,13 @@ import { type File } from "@prisma/client";
 import { api } from "~/utils/api";
 import { FileIcon } from "./FileIcon";
 import { BiSolidMessageSquareEdit } from "react-icons/bi";
+import dayjs from "dayjs";
+
+import relativeTime from "dayjs/plugin/relativeTime";
+dayjs.extend(relativeTime);
 
 interface FileCardProps {
-  file: File;
+  file: Omit<File, "summary" | "text">;
   onClick: () => void;
 }
 
@@ -16,7 +20,7 @@ export const FileCard: React.FC<FileCardProps> = ({ file, onClick }) => {
 
   const { data } = api.file.getFileByUid.useQuery(file.uid, {
     refetchInterval(data) {
-      return data?.shortSummary ? false : 2000;
+      return data?.hasProcessed ? false : 2000;
     },
   });
 
@@ -24,7 +28,7 @@ export const FileCard: React.FC<FileCardProps> = ({ file, onClick }) => {
 
   const ctx = api.useContext();
 
-  const isLoading = !data?.shortSummary;
+  const isLoading = !data?.hasProcessed;
 
   const onUpdateFile = () => {
     updateFile.mutate(
@@ -104,13 +108,13 @@ export const FileCard: React.FC<FileCardProps> = ({ file, onClick }) => {
         />
       )}
 
-      {!data?.shortSummary && (
+      {!data?.hasProcessed && (
         <div className="h-4 w-1/2 animate-pulse rounded-full bg-gray-200" />
       )}
 
-      {data?.shortSummary && (
+      {data?.hasProcessed && (
         <span className="line-clamp-3 text-sm font-light">
-          {data?.shortSummary}
+          {dayjs(file.createdAt).fromNow()}
         </span>
       )}
     </div>

@@ -26,12 +26,15 @@ export const FilePage: NextPage<{ uid: string }> = ({ uid }) => {
     },
   );
 
+  const renderAsObject =
+    file?.type === "application/pdf" || file?.type.includes("audio/");
+
   return (
     <>
       <PageBase showGoBack>
         {downloadUrl && (
           <>
-            {file?.type !== "application/pdf" && (
+            {!renderAsObject && (
               <DocViewer
                 prefetchMethod="GET"
                 documents={[
@@ -45,7 +48,7 @@ export const FilePage: NextPage<{ uid: string }> = ({ uid }) => {
               />
             )}
 
-            {file?.type === "application/pdf" && (
+            {renderAsObject && (
               <object
                 data={downloadUrl}
                 type={file?.type}

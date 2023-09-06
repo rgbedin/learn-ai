@@ -3,6 +3,7 @@ import { BsFillFilePdfFill } from "react-icons/bs";
 import { BsFillFileImageFill } from "react-icons/bs";
 import { BsFillFileWordFill } from "react-icons/bs";
 import { BsFillFileEarmarkFill } from "react-icons/bs";
+import { BsFillFilePlayFill } from "react-icons/bs";
 import { type IconBaseProps } from "react-icons";
 
 interface FileIconProps {
@@ -17,6 +18,8 @@ export const FileIcon: React.FC<FileIconProps> = ({ type, props }) => {
     return <BsFillFileImageFill {...props} />;
   } else if (type.includes("officedocument")) {
     return <BsFillFileWordFill color="blue" {...props} />;
+  } else if (type.includes("audio")) {
+    return <BsFillFilePlayFill color="green" {...props} />;
   } else {
     return <BsFillFileEarmarkFill {...props} />;
   }

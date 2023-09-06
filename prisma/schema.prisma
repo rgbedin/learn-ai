@@ -12,12 +12,14 @@ datasource db {
 }
 
 model File {
-  uid       String   @id @default(cuid())
-  userId    String
-  key       String
-  name      String
-  type      String
-  text      String?   @db.LongText
-  summary   String?   @db.MediumText
-  shortSummary String? @db.Text
+  uid          String     @id @default(cuid())
+  createdAt    DateTime   @default(now())
+  userId       String
+  key          String
+  name         String
+  type         String
+  text         String?    @db.LongText
+  summary      String?    @db.MediumText
+  shortSummary String?    @db.Text
+  hasProcessed Boolean    @default(false)
 }

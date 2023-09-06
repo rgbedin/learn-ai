@@ -7,7 +7,6 @@ import { prisma } from "~/server/db";
 import axios from "axios";
 import pdf from "pdf-parse";
 import { promptLongText } from "~/server/utils/ai";
-import { type File } from "@prisma/client";
 
 const BUCKET_NAME = "learn-ai-m93";
 
@@ -43,6 +42,95 @@ export const getDownloadUrl = async (key: string) => {
   return promise;
 };
 
+const transcribeImage = async (key: string): Promise<string> => {
+  const textract = new AWS.Textract();
+
+  let text = "";
+
+  const promise = new Promise<string>((resolve) => {
+    textract.detectDocumentText(
+      {
+        Document: {
+          S3Object: {
+            Bucket: BUCKET_NAME,
+            Name: key,
+          },
+        },
+      },
+      (err, data) => {
+        if (err) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Error extracting text from image",
+            cause: err?.message,
+          });
+        }
+
+        if (data?.Blocks) {
+          text = data.Blocks.filter((block) => block.BlockType === "LINE")
+            .map((block) => block.Text)
+            .join("\n");
+        }
+
+        resolve(text);
+      },
+    );
+  });
+
+  return promise;
+};
+
+const transcribeAudio = async (key: string): Promise<string> => {
+  console.debug("Transcribing audio file", key);
+
+  const transcribeService = new AWS.TranscribeService();
+
+  const params: AWS.TranscribeService.StartTranscriptionJobRequest = {
+    TranscriptionJobName: `JobName-${Date.now()}`, // Unique name for each transcription job
+    IdentifyLanguage: true,
+    MediaFormat: key.endsWith("mp3") ? "mp3" : "mp4",
+    Media: {
+      MediaFileUri: `s3://${BUCKET_NAME}/${key}`,
+    },
+  };
+
+  const response = await transcribeService
+    .startTranscriptionJob(params)
+    .promise();
+
+  let job = response.TranscriptionJob!;
+
+  while (job.TranscriptionJobStatus !== "COMPLETED") {
+    console.debug("Waiting for transcription job to complete...");
+
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+
+    const res = await transcribeService
+      .getTranscriptionJob({
+        TranscriptionJobName: job.TranscriptionJobName!,
+      })
+      .promise();
+
+    job = res.TranscriptionJob!;
+  }
+
+  const transcriptUri = job.Transcript?.TranscriptFileUri;
+
+  if (!transcriptUri) {
+    throw new TRPCError({
+      code: "INTERNAL_SERVER_ERROR",
+      message: "Error getting transcript URI",
+    });
+  }
+
+  // Fetch the transcript result from the provided URI
+  const transcriptResponse = await fetch(transcriptUri);
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  const transcriptData = await transcriptResponse.json();
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
+  return transcriptData.results.transcripts[0].transcript;
+};
+
 const extractAndStoreText = async (key: string) => {
   const file = await prisma.file.findFirstOrThrow({
     where: {
@@ -52,11 +140,9 @@ const extractAndStoreText = async (key: string) => {
 
   const downloadAsBuffer = async () => {
     const downloadUrl = await getDownloadUrl(key);
-
     const response = await axios.get<Buffer>(downloadUrl, {
       responseType: "arraybuffer",
     });
-
     return response.data;
   };
 
@@ -64,6 +150,7 @@ const extractAndStoreText = async (key: string) => {
 
   if (file.type === "application/pdf") {
     const thePdf = await pdf(await downloadAsBuffer());
+
     text = thePdf.text;
   } else if (
     file.type ===
@@ -72,41 +159,12 @@ const extractAndStoreText = async (key: string) => {
     const result = await mammoth.extractRawText({
       buffer: await downloadAsBuffer(),
     });
+
     text = result.value;
   } else if (file.type.includes("image")) {
-    const textract = new AWS.Textract();
-
-    const promise = new Promise<void>((resolve) => {
-      textract.detectDocumentText(
-        {
-          Document: {
-            S3Object: {
-              Bucket: BUCKET_NAME,
-              Name: key,
-            },
-          },
-        },
-        (err, data) => {
-          if (err) {
-            throw new TRPCError({
-              code: "INTERNAL_SERVER_ERROR",
-              message: "Error extracting text from image",
-              cause: err?.message,
-            });
-          }
-
-          if (data?.Blocks) {
-            text = data.Blocks.filter((block) => block.BlockType === "LINE")
-              .map((block) => block.Text)
-              .join("\n");
-          }
-
-          resolve();
-        },
-      );
-    });
-
-    await promise;
+    text = await transcribeImage(key);
+  } else if (file.type.includes("audio")) {
+    text = await transcribeAudio(key);
   } else {
     throw new TRPCError({
       code: "BAD_REQUEST",
@@ -120,34 +178,7 @@ const extractAndStoreText = async (key: string) => {
     },
     data: {
       text,
-    },
-  });
-};
-
-const hydrateSummaries = async (file: File) => {
-  const theFile = await prisma.file.findUniqueOrThrow({
-    where: {
-      uid: file.uid,
-    },
-  });
-
-  const summaries = await promptLongText(
-    theFile.text!,
-    "Create two summaries for the file. The first one should be a few paragraphs long. The second one should be a single short sentence with a maximum of 10 words. Reply to this message in a JSON format. Use the key 'summary' for the first summary and 'shortSummary' for the second summary.",
-  );
-
-  const parsedSummaries = JSON.parse(summaries) as {
-    summary: string;
-    shortSummary: string;
-  };
-
-  await prisma.file.update({
-    where: {
-      uid: file.uid,
-    },
-    data: {
-      summary: parsedSummaries.summary,
-      shortSummary: parsedSummaries.shortSummary,
+      hasProcessed: true,
     },
   });
 };
@@ -171,9 +202,7 @@ export const fileRouter = createTRPCRouter({
         },
       });
 
-      await extractAndStoreText(input.key);
-
-      void hydrateSummaries(file);
+      void extractAndStoreText(input.key);
 
       return file;
     }),
@@ -221,6 +250,16 @@ export const fileRouter = createTRPCRouter({
 
   getAllUserFiles: privateProcedure.query(async ({ ctx }) => {
     const files = await ctx.prisma.file.findMany({
+      select: {
+        key: true,
+        name: true,
+        type: true,
+        uid: true,
+        shortSummary: true,
+        userId: true,
+        hasProcessed: true,
+        createdAt: true,
+      },
       where: {
         userId: ctx.userId,
       },
@@ -294,7 +333,10 @@ export const fileRouter = createTRPCRouter({
       }
 
       if (!file.text) {
-        await extractAndStoreText(input.key);
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "File has not been processed yet",
+        });
       }
 
       if (!file.summary) {
