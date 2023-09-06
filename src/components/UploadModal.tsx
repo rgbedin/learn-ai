@@ -109,10 +109,11 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
       );
 
       void onAfterUpload.mutateAsync(
-        { key, name: file.name, type: file.type },
+        { key, name: file.name, type: file.type, size: file.size },
         {
           onSuccess: () => {
             void ctx.file.getAllUserFiles.invalidate();
+            onClose();
           },
         },
       );
@@ -167,10 +168,10 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
                 </div>
 
                 {file && (
-                  <div className="mt-4 flex flex-col rounded-md bg-gray-100 p-2">
+                  <div className="mt-4 flex flex-col rounded-md bg-gray-100 px-2 py-2">
                     <div className="flex justify-between gap-4">
-                      <div className="flex items-center gap-2">
-                        <FileIcon type={file.type} props={{ size: 45 }} />
+                      <div className="flex items-center gap-4">
+                        <FileIcon type={file.type} size="md" />
 
                         <div className="flex flex-col justify-between gap-1">
                           <span className="line-clamp-1 text-sm">

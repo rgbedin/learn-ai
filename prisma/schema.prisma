@@ -18,6 +18,7 @@ model File {
   key          String
   name         String
   type         String
+  size         Int
   text         String?    @db.LongText
   summary      String?    @db.MediumText
   shortSummary String?    @db.Text

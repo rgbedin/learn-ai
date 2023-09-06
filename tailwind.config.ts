@@ -7,6 +7,9 @@ export default {
       transitionProperty: {
         width: "width",
       },
+      backgroundColor: {
+        glass: "rgba(255, 255, 255, 0.33)",
+      },
     },
   },
   plugins: [],

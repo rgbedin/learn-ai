@@ -21,7 +21,7 @@ const FeaturesCard: React.FC<FeaturesCardProps> = ({ imageUrl, title }) => {
 
 export const FeaturesCarousel: React.FC = () => {
   return (
-    <div className="mb-3 flex gap-1 border-b border-gray-200">
+    <div className="mb-3 flex border-b border-gray-200">
       <FeaturesCard
         imageUrl="https://public-learn-ai-m93.s3.amazonaws.com/img-1.png"
         title="You can upload a photo of any written text."

@@ -190,6 +190,7 @@ export const fileRouter = createTRPCRouter({
         key: z.string().nonempty(),
         name: z.string().nonempty(),
         type: z.string().nonempty(),
+        size: z.number().int().positive(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -199,6 +200,7 @@ export const fileRouter = createTRPCRouter({
           name: input.name,
           type: input.type,
           userId: ctx.userId,
+          size: input.size,
         },
       });
 
@@ -259,6 +261,7 @@ export const fileRouter = createTRPCRouter({
         userId: true,
         hasProcessed: true,
         createdAt: true,
+        size: true,
       },
       where: {
         userId: ctx.userId,

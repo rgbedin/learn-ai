@@ -6,6 +6,7 @@ import { BiSolidMessageSquareEdit } from "react-icons/bi";
 import dayjs from "dayjs";
 
 import relativeTime from "dayjs/plugin/relativeTime";
+import { humanFileSize } from "~/utils/humanFileSize";
 dayjs.extend(relativeTime);
 
 interface FileCardProps {
@@ -55,14 +56,9 @@ export const FileCard: React.FC<FileCardProps> = ({ file, onClick }) => {
       }}
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
-      className="relative flex h-[250px] w-[250px] cursor-pointer flex-col items-center justify-between gap-4 rounded-md bg-white p-4 shadow-sm transition hover:translate-y-[-5px]"
+      className="border-1 border-1 relative flex h-[200px] w-[190px] cursor-pointer flex-col items-center justify-between gap-4 border-gray-200 bg-white px-4 pb-4 pt-6 shadow-md transition hover:shadow-lg"
     >
-      {!isLoading && (
-        <FileIcon
-          type={file.type}
-          props={{ size: 55, style: { flexShrink: 0 } }}
-        />
-      )}
+      {!isLoading && <FileIcon type={file.type} size="lg" />}
 
       {isLoading && (
         <div className="h-16 w-14 animate-pulse rounded-md bg-gray-200" />
@@ -81,9 +77,10 @@ export const FileCard: React.FC<FileCardProps> = ({ file, onClick }) => {
       )}
 
       {!isEditing && (
-        <span className="line-clamp-2 text-center font-extralight">
-          {file.name}
-        </span>
+        <div className="flex w-full flex-col">
+          <span className="line-clamp-1">{file.name}</span>
+          <span className="text-gray-500">{humanFileSize(file.size)}</span>
+        </div>
       )}
 
       {isEditing && (
@@ -110,12 +107,6 @@ export const FileCard: React.FC<FileCardProps> = ({ file, onClick }) => {
 
       {!data?.hasProcessed && (
         <div className="h-4 w-1/2 animate-pulse rounded-full bg-gray-200" />
-      )}
-
-      {data?.hasProcessed && (
-        <span className="line-clamp-3 text-sm font-light">
-          {dayjs(file.createdAt).fromNow()}
-        </span>
       )}
     </div>
   );
