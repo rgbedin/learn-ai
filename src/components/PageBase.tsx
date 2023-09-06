@@ -1,9 +1,9 @@
 import { UserButton, useUser } from "@clerk/nextjs";
 import Link from "next/link";
 import { type PropsWithChildren } from "react";
-import { Manrope } from "next/font/google";
+import { Open_Sans } from "next/font/google";
 
-const manrope = Manrope({ subsets: ["latin"] });
+const theFont = Open_Sans({ subsets: ["latin"] });
 
 interface PageBaseProps extends PropsWithChildren {
   showGoBack?: boolean;
@@ -13,7 +13,7 @@ export const PageBase: React.FC<PageBaseProps> = ({ children, showGoBack }) => {
   const { user } = useUser();
 
   return (
-    <main className={manrope.className}>
+    <main className={theFont.className}>
       <div className="flex h-auto min-h-screen flex-1 flex-col items-stretch">
         <div className="flex h-[50px] flex-shrink-0 items-center justify-between bg-[#003049] p-2">
           <span className="font-light text-white">Hello, {user?.fullName}</span>

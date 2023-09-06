@@ -17,6 +17,15 @@ const config = {
     locales: ["en"],
     defaultLocale: "en",
   },
+
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "public-learn-ai-m93.s3.amazonaws.com",
+      },
+    ],
+  },
 };
 
 export default config;
