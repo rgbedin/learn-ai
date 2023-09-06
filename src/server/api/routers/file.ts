@@ -178,6 +178,27 @@ export const fileRouter = createTRPCRouter({
       return file;
     }),
 
+  updateFile: privateProcedure
+    .input(
+      z.object({
+        uid: z.string().nonempty(),
+        name: z.string().nonempty(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const file = await ctx.prisma.file.update({
+        where: {
+          uid: input.uid,
+          userId: ctx.userId,
+        },
+        data: {
+          name: input.name,
+        },
+      });
+
+      return file;
+    }),
+
   getFileByUid: privateProcedure
     .input(z.string().nonempty())
     .query(async ({ ctx, input }) => {
