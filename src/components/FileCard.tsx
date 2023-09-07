@@ -10,7 +10,7 @@ import { humanFileSize } from "~/utils/humanFileSize";
 dayjs.extend(relativeTime);
 
 interface FileCardProps {
-  file: Omit<File, "summary" | "text">;
+  file: Omit<File, "summary" | "text" | "outline">;
   onClick: () => void;
 }
 

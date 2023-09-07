@@ -2,8 +2,15 @@ import type { GetStaticProps, NextPage } from "next";
 import { api } from "~/utils/api";
 import { PageBase } from "../../components/PageBase";
 import DocViewer, { DocViewerRenderers } from "@cyntler/react-doc-viewer";
+import { useMemo, useState } from "react";
+import { OptionPicker } from "~/components/OptionPicker";
+import { Summarize } from "~/components/Summarize";
+
+type OptionType = "summarize" | "outline" | "chat";
 
 export const FilePage: NextPage<{ uid: string }> = ({ uid }) => {
+  const [optionSelected, setOptionSelected] = useState<OptionType>();
+
   const { data: file } = api.file.getFileByUid.useQuery(uid);
 
   const { data: downloadUrl } = api.file.getDownloadUrl.useQuery(
@@ -16,22 +23,14 @@ export const FilePage: NextPage<{ uid: string }> = ({ uid }) => {
     },
   );
 
-  const { data: summary } = api.file.getSummary.useQuery(
-    {
-      key: file?.key ?? "",
-    },
-    {
-      enabled: !!file?.key && !!downloadUrl,
-      staleTime: Infinity,
-    },
+  const renderAsObject = useMemo(
+    () => file?.type === "application/pdf" || file?.type.includes("audio/"),
+    [file?.type],
   );
 
-  const renderAsObject =
-    file?.type === "application/pdf" || file?.type.includes("audio/");
-
-  return (
-    <>
-      <PageBase showGoBack>
+  const documentViewer = useMemo(() => {
+    return (
+      <>
         {downloadUrl && (
           <>
             {!renderAsObject && (
@@ -58,8 +57,27 @@ export const FilePage: NextPage<{ uid: string }> = ({ uid }) => {
             )}
           </>
         )}
+      </>
+    );
+  }, [downloadUrl, file?.type, file?.name, renderAsObject]);
 
-        {summary && <div className="whitespace-pre-line">{summary}</div>}
+  return (
+    <>
+      <PageBase showGoBack>
+        <div className="grid flex-1 grid-cols-2 gap-2">
+          {documentViewer}
+
+          {!optionSelected && (
+            <OptionPicker onSelectOption={setOptionSelected} />
+          )}
+
+          {optionSelected === "summarize" && file && (
+            <Summarize
+              file={file}
+              onCancel={() => setOptionSelected(undefined)}
+            />
+          )}
+        </div>
       </PageBase>
     </>
   );

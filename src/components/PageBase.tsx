@@ -3,6 +3,7 @@ import Link from "next/link";
 import { type PropsWithChildren } from "react";
 import { Inter } from "next/font/google";
 import { AiOutlineUser } from "react-icons/ai";
+import { BiArrowBack } from "react-icons/bi";
 
 const theFont = Inter({ subsets: ["latin"] });
 
@@ -15,8 +16,8 @@ export const PageBase: React.FC<PageBaseProps> = ({ children, showGoBack }) => {
 
   return (
     <main className={theFont.className}>
-      <div className="flex h-auto min-h-screen flex-1 flex-col items-stretch rounded-lg bg-gray-200 bg-opacity-90">
-        <div className="z-10 flex h-[60px] flex-shrink-0 items-center justify-between rounded-b-2xl bg-[#003049] p-4">
+      <div className="flex h-auto min-h-screen flex-1 flex-col items-stretch  bg-gray-200 bg-opacity-90">
+        <div className="z-10 flex h-[60px] flex-shrink-0 items-center justify-between rounded-b-xl bg-[#003049] p-4">
           <div className="flex flex-1 gap-1">
             <AiOutlineUser size={25} color="white" />
             <span className="text-white">{user?.fullName}</span>
@@ -25,22 +26,18 @@ export const PageBase: React.FC<PageBaseProps> = ({ children, showGoBack }) => {
           <UserButton />
         </div>
 
-        <div className="flex flex-1 grow flex-col rounded-sm p-2">
-          {showGoBack && <Link href="/">Go Back</Link>}
+        <div className="flex flex-1 grow flex-col p-2">
+          {showGoBack && (
+            <Link className="my-2 hover:underline" href="/">
+              <span className="flex items-center gap-1">
+                <BiArrowBack size={20} />
+                Back
+              </span>
+            </Link>
+          )}
 
           {children}
         </div>
-
-        <div
-          style={{
-            backgroundImage:
-              "linear-gradient(to right bottom, #003049, #194564, #305b81, #48719e, #003049)",
-            height: "100vh",
-            position: "fixed",
-            width: "100%",
-            zIndex: -1,
-          }}
-        />
       </div>
     </main>
   );

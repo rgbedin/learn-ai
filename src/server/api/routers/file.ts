@@ -257,7 +257,6 @@ export const fileRouter = createTRPCRouter({
         name: true,
         type: true,
         uid: true,
-        shortSummary: true,
         userId: true,
         hasProcessed: true,
         createdAt: true,
@@ -319,7 +318,13 @@ export const fileRouter = createTRPCRouter({
     }),
 
   getSummary: privateProcedure
-    .input(z.object({ key: z.string().nonempty() }))
+    .input(
+      z.object({
+        key: z.string().nonempty(),
+        languageCode: z.string().nonempty(),
+        numParagraphs: z.number().int().positive(),
+      }),
+    )
     .query(async ({ ctx, input }) => {
       const file = await prisma.file.findFirst({
         where: {
@@ -346,7 +351,7 @@ export const fileRouter = createTRPCRouter({
         const summary = await promptLongText(
           // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
           file.text!,
-          "Summarize the file in a few paragraphs.",
+          `Summarize this text into ${input.numParagraphs} paragraphs in the language with code ${input.languageCode}`,
         );
 
         await prisma.file.update({

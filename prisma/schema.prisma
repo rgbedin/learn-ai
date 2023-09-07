@@ -20,7 +20,7 @@ model File {
   type         String
   size         Int
   text         String?    @db.LongText
-  summary      String?    @db.MediumText
-  shortSummary String?    @db.Text
+  summary      String?    @db.LongText
+  outline      String?    @db.LongText
   hasProcessed Boolean    @default(false)
 }
