@@ -1,60 +1,57 @@
 /* eslint-disable react/no-unescaped-entities */
-import { type Summary, type File } from "@prisma/client";
+import { type File, type Outline } from "@prisma/client";
 import { useEffect, useMemo, useState } from "react";
 import { api } from "~/utils/api";
 import Image from "next/image";
 import { toast } from "react-hot-toast";
 import { useRouter } from "next/router";
 
-interface SummarizeResult {
+interface OutlineResult {
   file: File;
   languageCode: string;
-  numParagraphs: number;
 }
 
-export const SummarizeResult: React.FC<SummarizeResult> = ({
+export const OutlineResult: React.FC<OutlineResult> = ({
   file,
   languageCode,
-  numParagraphs,
 }) => {
-  const [summary, setSummary] = useState<Summary>();
+  const [outline, setOutline] = useState<Outline>();
 
   const loadingSteps = useMemo(
     () => [
-      "Bribing the Bookworm for a concise summary",
-      "Unrolling the ancient scrolls of Summarization",
-      "The Summary Sorcerer is stirring the potion",
-      "Whispering magic words to the Summary Sprite",
-      "Negotiating with the Knowledge Nymph",
-      "Waking up the Wise Old Owl for a quick review",
-      "Polishing the summary with a sprinkle of pixie dust",
-      "Asking the Elves for an express delivery",
-      "Making final touches with the Mystic Quill",
-      "The Summary Scribe is sealing your note",
-      "Hitching a ride on a Comet to deliver your summary",
+      "Summoning the Outline Oracle for a blueprint",
+      "Sifting through the Sands of Structure",
+      "The Outline Octopus is organizing the main points",
+      "Singing sonnets to the Skeleton Key of Structure",
+      "Conversing with the Chapter Chieftain",
+      "Enlisting the aid of the Outline Ocelot for sub-points",
+      "Tidying the template with a touch of tinsel",
+      "Beckoning the Blueprint Bats for quick feedback",
+      "Carving curves with the Crafty Compass",
+      "The Outline Owl is orchestrating the final draft",
+      "Riding the Waves of Wisdom to finalize your outline",
     ],
     [],
   );
 
   const [activeStep, setActiveStep] = useState<string>(loadingSteps[0]!);
 
-  const createSummary = api.file.generateSummary.useMutation();
+  const createOutline = api.file.generateOutline.useMutation();
 
   const ctx = api.useContext();
 
   useEffect(() => {
-    console.debug("Creating summary...", file.key, languageCode, numParagraphs);
+    console.debug("Creating outline...", file.key, languageCode);
 
-    createSummary.mutate(
+    createOutline.mutate(
       {
         key: file.key,
         languageCode,
-        numParagraphs,
       },
       {
-        onSuccess: (summary) => {
-          void ctx.file.getSummaries.invalidate();
-          setSummary(summary);
+        onSuccess: (o) => {
+          void ctx.file.getOutlines.invalidate();
+          setOutline(o);
         },
         onError: (err) => {
           toast.error(err.message);
@@ -62,10 +59,10 @@ export const SummarizeResult: React.FC<SummarizeResult> = ({
       },
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [file.key, languageCode, numParagraphs]);
+  }, [file.key, languageCode]);
 
   useEffect(() => {
-    if (!!summary) {
+    if (!!outline) {
       return;
     }
 
@@ -82,15 +79,15 @@ export const SummarizeResult: React.FC<SummarizeResult> = ({
     const intervalId = setInterval(updateLoadingStep, 4000);
 
     return () => clearInterval(intervalId);
-  }, [activeStep, summary, loadingSteps]);
+  }, [activeStep, outline, loadingSteps]);
 
   const router = useRouter();
 
   useEffect(() => {
-    if (summary) {
-      void router.push(`/file/${file.uid}?summary=${summary.uid}`);
+    if (outline) {
+      void router.push(`/file/${file.uid}?outline=${outline.uid}`);
     }
-  }, [summary, file.uid, router]);
+  }, [outline, file.uid, router]);
 
   return (
     <div className="relative flex h-full flex-col gap-6">

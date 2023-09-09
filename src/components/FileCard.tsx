@@ -3,10 +3,11 @@ import { type File } from "@prisma/client";
 import { api } from "~/utils/api";
 import { FileIcon } from "./FileIcon";
 import { BiSolidMessageSquareEdit } from "react-icons/bi";
+import { humanFileSize } from "~/utils/humanFileSize";
 import dayjs from "dayjs";
 
 import relativeTime from "dayjs/plugin/relativeTime";
-import { humanFileSize } from "~/utils/humanFileSize";
+
 dayjs.extend(relativeTime);
 
 interface FileCardProps {

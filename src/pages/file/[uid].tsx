@@ -4,12 +4,24 @@ import { PageBase } from "../../components/PageBase";
 import DocViewer, { DocViewerRenderers } from "@cyntler/react-doc-viewer";
 import { useMemo, useState } from "react";
 import { OptionPicker } from "~/components/OptionPicker";
-import { Summarize } from "~/components/Summarize";
+import dayjs from "dayjs";
+import { useSearchParams } from "next/navigation";
+import relativeTime from "dayjs/plugin/relativeTime";
+import { SummaryView } from "~/components/SummaryView";
+import { SummarizeModal } from "~/components/SummarizeModal";
+import { OutlineView } from "~/components/OutlineView";
+import { OutlineModal } from "~/components/OutlineModal";
+
+dayjs.extend(relativeTime);
 
 type OptionType = "summarize" | "outline" | "chat";
 
 export const FilePage: NextPage<{ uid: string }> = ({ uid }) => {
   const [optionSelected, setOptionSelected] = useState<OptionType>();
+
+  const searchParams = useSearchParams();
+  const summary = searchParams.get("summary");
+  const outline = searchParams.get("outline");
 
   const { data: file } = api.file.getFileByUid.useQuery(uid);
 
@@ -67,16 +79,34 @@ export const FilePage: NextPage<{ uid: string }> = ({ uid }) => {
         <div className="grid flex-1 grid-cols-2 gap-2">
           {documentViewer}
 
-          {!optionSelected && (
-            <OptionPicker onSelectOption={setOptionSelected} />
-          )}
+          <div className="flex flex-col gap-2">
+            {summary && <SummaryView summaryUid={summary} />}
 
-          {optionSelected === "summarize" && file && (
-            <Summarize
-              file={file}
-              onCancel={() => setOptionSelected(undefined)}
-            />
-          )}
+            {outline && <OutlineView outlineUid={outline} />}
+
+            {!summary && !outline && (
+              <>
+                <OptionPicker
+                  fileUid={uid}
+                  onSelectOption={setOptionSelected}
+                />
+
+                {optionSelected === "summarize" && file && (
+                  <SummarizeModal
+                    file={file}
+                    onClose={() => setOptionSelected(undefined)}
+                  />
+                )}
+
+                {optionSelected === "outline" && file && (
+                  <OutlineModal
+                    file={file}
+                    onClose={() => setOptionSelected(undefined)}
+                  />
+                )}
+              </>
+            )}
+          </div>
         </div>
       </PageBase>
     </>

@@ -318,6 +318,87 @@ export const fileRouter = createTRPCRouter({
     }),
 
   getSummary: privateProcedure
+    .input(z.string().nonempty())
+    .query(async ({ ctx, input }) => {
+      const summary = await ctx.prisma.summary.findUnique({
+        where: {
+          uid: input,
+          file: {
+            userId: ctx.userId,
+          },
+        },
+      });
+
+      if (!summary) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Summary not found",
+        });
+      }
+
+      return summary;
+    }),
+
+  getOutline: privateProcedure
+    .input(z.string().nonempty())
+    .query(async ({ ctx, input }) => {
+      const outline = await ctx.prisma.outline.findUnique({
+        where: {
+          uid: input,
+          file: {
+            userId: ctx.userId,
+          },
+        },
+      });
+
+      if (!outline) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Outline not found",
+        });
+      }
+
+      return outline;
+    }),
+
+  getSummaries: privateProcedure
+    .input(z.object({ fileUid: z.string().nonempty() }))
+    .query(async ({ ctx, input }) => {
+      const summaries = await ctx.prisma.summary.findMany({
+        select: {
+          createdAt: true,
+          fileUid: true,
+          language: true,
+          numParagraphs: true,
+          uid: true,
+        },
+        where: {
+          fileUid: input.fileUid,
+        },
+      });
+
+      return summaries;
+    }),
+
+  getOutlines: privateProcedure
+    .input(z.object({ fileUid: z.string().nonempty() }))
+    .query(async ({ ctx, input }) => {
+      const outlines = await ctx.prisma.outline.findMany({
+        select: {
+          createdAt: true,
+          fileUid: true,
+          language: true,
+          uid: true,
+        },
+        where: {
+          fileUid: input.fileUid,
+        },
+      });
+
+      return outlines;
+    }),
+
+  generateSummary: privateProcedure
     .input(
       z.object({
         key: z.string().nonempty(),
@@ -325,7 +406,7 @@ export const fileRouter = createTRPCRouter({
         numParagraphs: z.number().int().positive(),
       }),
     )
-    .query(async ({ ctx, input }) => {
+    .mutation(async ({ ctx, input }) => {
       const file = await prisma.file.findFirst({
         where: {
           key: input.key,
@@ -347,25 +428,67 @@ export const fileRouter = createTRPCRouter({
         });
       }
 
-      if (!file.summary) {
-        const summary = await promptLongText(
-          // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-          file.text!,
-          `Summarize this text into ${input.numParagraphs} paragraphs in the language with code ${input.languageCode}`,
-        );
+      const summary = await promptLongText(
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+        file.text!,
+        `Summarize this text into ${input.numParagraphs} paragraphs in the language with code ${input.languageCode}`,
+      );
 
-        await prisma.file.update({
-          where: {
-            uid: file.uid,
-          },
-          data: {
-            summary,
-          },
+      const s = await prisma.summary.create({
+        data: {
+          fileUid: file.uid,
+          language: input.languageCode,
+          numParagraphs: input.numParagraphs,
+          text: summary,
+        },
+      });
+
+      return s;
+    }),
+
+  generateOutline: privateProcedure
+    .input(
+      z.object({
+        key: z.string().nonempty(),
+        languageCode: z.string().nonempty(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const file = await prisma.file.findFirst({
+        where: {
+          key: input.key,
+          userId: ctx.userId,
+        },
+      });
+
+      if (!file) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "File not found",
         });
-
-        return summary;
-      } else {
-        return file.summary;
       }
+
+      if (!file.text) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "File has not been processed yet",
+        });
+      }
+
+      const outline = await promptLongText(
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+        file.text!,
+        `Create a study outline for this text. Generate your answer in the language with code ${input.languageCode}`,
+      );
+
+      const o = await prisma.outline.create({
+        data: {
+          fileUid: file.uid,
+          language: input.languageCode,
+          text: outline,
+        },
+      });
+
+      return o;
     }),
 });
