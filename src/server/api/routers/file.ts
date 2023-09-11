@@ -1,3 +1,9 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+// eslint-disable-file @typescript-eslint/no-unsafe-member-access
 import { z } from "zod";
 import { createTRPCRouter, privateProcedure } from "~/server/api/trpc";
 import AWS from "aws-sdk";
@@ -6,7 +12,8 @@ import { TRPCError } from "@trpc/server";
 import { prisma } from "~/server/db";
 import axios from "axios";
 import pdf from "pdf-parse";
-import { promptLongText } from "~/server/utils/ai";
+import { summarizeText, promptFile, summarizeV2 } from "~/server/utils/ai";
+import { type ChatHistoryEntry } from "@prisma/client";
 
 const BUCKET_NAME = "learn-ai-m93";
 
@@ -181,6 +188,8 @@ const extractAndStoreText = async (key: string) => {
       hasProcessed: true,
     },
   });
+
+  return text;
 };
 
 export const fileRouter = createTRPCRouter({
@@ -204,7 +213,14 @@ export const fileRouter = createTRPCRouter({
         },
       });
 
-      void extractAndStoreText(input.key);
+      const text = await extractAndStoreText(input.key);
+
+      if (!text) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "File type not supported",
+        });
+      }
 
       return file;
     }),
@@ -398,6 +414,134 @@ export const fileRouter = createTRPCRouter({
       return outlines;
     }),
 
+  getAllChats: privateProcedure
+    .input(z.object({ fileUid: z.string().nonempty() }))
+
+    .query(async ({ ctx, input }) => {
+      const chats = await ctx.prisma.chat.findMany({
+        select: {
+          createdAt: true,
+          fileUid: true,
+          uid: true,
+          firstQuestion: true,
+        },
+        where: {
+          fileUid: input.fileUid,
+        },
+      });
+
+      return chats;
+    }),
+
+  getChat: privateProcedure
+    .input(z.object({ uid: z.string().nonempty() }))
+    .query(async ({ ctx, input }) => {
+      const chat = await ctx.prisma.chat.findUnique({
+        select: {
+          createdAt: true,
+          fileUid: true,
+          uid: true,
+          firstQuestion: true,
+          history: true,
+        },
+        where: {
+          uid: input.uid,
+        },
+      });
+
+      if (!chat) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Chat not found",
+        });
+      }
+
+      return chat;
+    }),
+
+  askQuestion: privateProcedure
+    .input(
+      z.object({
+        fileUid: z.string().nonempty(),
+        chatUid: z.string().optional(), // If not provided, a new chat will be created
+        question: z.string().nonempty(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const file = await prisma.file.findFirst({
+        where: {
+          uid: input.fileUid,
+          userId: ctx.userId,
+        },
+      });
+
+      if (!file) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "File not found",
+        });
+      }
+
+      if (!file.text) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "File has not been processed yet",
+        });
+      }
+
+      if (!input.chatUid) {
+        const newChat = await prisma.chat.create({
+          data: {
+            fileUid: input.fileUid,
+            firstQuestion: input.question,
+          },
+        });
+
+        input.chatUid = newChat.uid;
+      }
+
+      const chat = await prisma.chat.findFirst({
+        select: {
+          history: true,
+        },
+        where: {
+          uid: input.chatUid,
+          fileUid: input.fileUid,
+        },
+      });
+
+      if (!chat) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Chat not found",
+        });
+      }
+
+      let chatHistory: ChatHistoryEntry[] = [];
+
+      if (chat.history) {
+        // Order the chat history by date and trasform into a single string to feed into AI
+        const orderedHistory = chat.history.sort(
+          (a, b) =>
+            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+        );
+
+        chatHistory = orderedHistory;
+      }
+
+      const answer = promptFile(input.question, file.key);
+
+      const newHistoryEntry = await prisma.chatHistoryEntry.create({
+        data: {
+          chatUid: input.chatUid,
+          question: input.question,
+          answer: answer,
+        },
+      });
+
+      return newHistoryEntry;
+    }),
+
   generateSummary: privateProcedure
     .input(
       z.object({
@@ -428,10 +572,10 @@ export const fileRouter = createTRPCRouter({
         });
       }
 
-      const summary = await promptLongText(
+      const summary = await summarizeV2(
         // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
         file.text!,
-        `Summarize this text into ${input.numParagraphs} paragraphs in the language with code ${input.languageCode}`,
+        file.name,
       );
 
       const s = await prisma.summary.create({
@@ -475,10 +619,11 @@ export const fileRouter = createTRPCRouter({
         });
       }
 
-      const outline = await promptLongText(
+      const outline = await summarizeText(
         // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
         file.text!,
-        `Create a study outline for this text. Generate your answer in the language with code ${input.languageCode}`,
+        input.languageCode,
+        "outline",
       );
 
       const o = await prisma.outline.create({

@@ -42,7 +42,10 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
         ["docx"],
     },
     maxFiles: 1,
-    maxSize: 10000000,
+    maxSize: 30000000,
+    onDropRejected: (err) => {
+      toast.error(err[0]?.errors[0]?.message ?? "Invalid file type or size.");
+    },
     onError(err) {
       toast.error(err.message);
     },

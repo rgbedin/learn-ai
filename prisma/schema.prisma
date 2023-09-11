@@ -23,6 +23,29 @@ model File {
   hasProcessed Boolean    @default(false)
   summaries    Summary[]
   outlines     Outline[]
+  chats        Chat[]
+}
+
+model Chat {
+  uid       String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  file      File     @relation(fields: [fileUid], references: [uid])
+  fileUid   String
+  firstQuestion String
+  history   ChatHistoryEntry[]
+
+  @@index([fileUid])
+}
+
+model ChatHistoryEntry {
+  uid       String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  question  String   @db.MediumText
+  answer    String   @db.LongText
+  chat      Chat     @relation(fields: [chatUid], references: [uid])
+  chatUid   String
+
+  @@index([chatUid])
 }
 
 model Summary {

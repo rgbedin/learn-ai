@@ -11,6 +11,8 @@ import { SummaryView } from "~/components/SummaryView";
 import { SummarizeModal } from "~/components/SummarizeModal";
 import { OutlineView } from "~/components/OutlineView";
 import { OutlineModal } from "~/components/OutlineModal";
+import { ChatModal } from "~/components/ChatModal";
+import { useRouter } from "next/router";
 
 dayjs.extend(relativeTime);
 
@@ -22,6 +24,7 @@ export const FilePage: NextPage<{ uid: string }> = ({ uid }) => {
   const searchParams = useSearchParams();
   const summary = searchParams.get("summary");
   const outline = searchParams.get("outline");
+  const chat = searchParams.get("chat");
 
   const { data: file } = api.file.getFileByUid.useQuery(uid);
 
@@ -73,6 +76,8 @@ export const FilePage: NextPage<{ uid: string }> = ({ uid }) => {
     );
   }, [downloadUrl, file?.type, file?.name, renderAsObject]);
 
+  const router = useRouter();
+
   return (
     <>
       <PageBase showGoBack>
@@ -83,6 +88,16 @@ export const FilePage: NextPage<{ uid: string }> = ({ uid }) => {
             {summary && <SummaryView summaryUid={summary} />}
 
             {outline && <OutlineView outlineUid={outline} />}
+
+            {chat && file && (
+              <ChatModal
+                file={file}
+                chatUid={chat}
+                onClose={() => {
+                  void router.back();
+                }}
+              />
+            )}
 
             {!summary && !outline && (
               <>
@@ -100,6 +115,13 @@ export const FilePage: NextPage<{ uid: string }> = ({ uid }) => {
 
                 {optionSelected === "outline" && file && (
                   <OutlineModal
+                    file={file}
+                    onClose={() => setOptionSelected(undefined)}
+                  />
+                )}
+
+                {optionSelected === "chat" && file && (
+                  <ChatModal
                     file={file}
                     onClose={() => setOptionSelected(undefined)}
                   />

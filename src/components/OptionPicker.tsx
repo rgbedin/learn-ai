@@ -5,6 +5,7 @@ import { SummaryCard } from "./SummaryCard";
 import { CreateNew } from "./CreateNewCard";
 import { Transition } from "@headlessui/react";
 import { OutlineCard } from "./OutlineCard";
+import { ChatCard } from "./ChatCard";
 
 export type OptionType = "summarize" | "outline" | "chat";
 
@@ -24,6 +25,10 @@ export const OptionPicker: React.FC<OptionPickerProps> = ({
   });
 
   const { data: allOutlines } = api.file.getOutlines.useQuery({
+    fileUid,
+  });
+
+  const { data: allChats } = api.file.getAllChats.useQuery({
     fileUid,
   });
 
@@ -89,13 +94,33 @@ export const OptionPicker: React.FC<OptionPickerProps> = ({
         </Transition>
       </div>
 
-      <OptionCard
-        title="Ask Questions"
-        isSelected={optionSelected === "chat"}
-        onClick={() => setOptionSelected("chat")}
-        description="Ask questions about the content of the file as if you were talking to a friendly expert."
-        imageUrl="https://public-learn-ai-m93.s3.amazonaws.com/img-6-no-bg.png"
-      />
+      <div className="flex flex-col gap-1">
+        <OptionCard
+          title="Ask Questions"
+          isSelected={optionSelected === "chat"}
+          onClick={() => setOptionSelected("chat")}
+          description="Ask questions about the content of the file as if you were talking to a friendly expert."
+          imageUrl="https://public-learn-ai-m93.s3.amazonaws.com/img-6-no-bg.png"
+        />
+
+        <Transition
+          className="flex flex-col gap-1"
+          show={optionSelected === "chat"}
+          enter="transition-all ease-in-out duration-300"
+          enterFrom="h-0 opacity-0 translate-y-6"
+          enterTo="h-100% opacity-100 translate-y-0"
+          leave="transition-all ease-in-out duration-300"
+          leaveFrom="opacity-100"
+          leaveTo="h-0 opacity-0"
+        >
+          <CreateNew
+            label="Start New Chat"
+            onClick={() => onSelectOption("chat")}
+          />
+
+          {allChats?.map((chat) => <ChatCard key={chat.uid} chat={chat} />)}
+        </Transition>
+      </div>
     </div>
   );
 };
