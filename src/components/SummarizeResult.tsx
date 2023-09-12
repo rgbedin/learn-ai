@@ -69,6 +69,7 @@ export const SummarizeResult: React.FC<SummarizeResult> = ({
       {
         onSuccess: (summary) => {
           void ctx.file.getSummaries.invalidate();
+          void ctx.coins.getMyCoins.invalidate();
           setSummary(summary);
         },
         onError: (err) => {

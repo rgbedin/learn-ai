@@ -9,6 +9,8 @@ import { humanFileSize } from "~/utils/humanFileSize";
 import { GrFormClose } from "react-icons/gr";
 import { BiUpload } from "react-icons/bi";
 import { FeaturesCarousel } from "./FeaturesCarousel";
+import { getCostUploadByFileType } from "~/utils/costs";
+import CoinsDisplay from "./CoinsDisplay";
 
 const dropzoneBaseStyle: CSSProperties = {
   flex: 1,
@@ -33,6 +35,8 @@ interface UploadModalProps {
 export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
   const [file, setFile] = useState<File>();
   const [uploadProgress, setUploadProgress] = useState<number>(0);
+  const [hasEnoughCoins, setHasEnoughCoins] = useState<boolean>(true);
+
   const { acceptedFiles, getRootProps, getInputProps, inputRef } = useDropzone({
     accept: {
       "image/*": ["png", "jpg", "jpeg"],
@@ -70,6 +74,11 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
   const hasStartedUpload = uploadProgress > 0 && uploadProgress <= 100;
 
   const hasFinishedUpload = uploadProgress === 100;
+
+  const costForFile = useMemo(() => {
+    if (!file) return undefined;
+    return getCostUploadByFileType(file.type);
+  }, [file]);
 
   const clearFile = () => {
     inputRef.current?.value && (inputRef.current.value = "");
@@ -114,6 +123,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
         {
           onSuccess: () => {
             void ctx.file.getAllUserFiles.invalidate();
+            void ctx.coins.getMyCoins.invalidate();
             onClose();
           },
         },
@@ -195,6 +205,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
                             <GrFormClose size={20} color="#9f9f9f" />
                           </div>
                         )}
+
                         {hasStartedUpload && (
                           <span className="rounded-lg bg-[#003049] p-1 text-xs text-white">
                             {uploadProgress}%
@@ -213,6 +224,17 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
                     )}
                   </div>
                 )}
+
+                {!!costForFile && (
+                  <div className="mt-4">
+                    <CoinsDisplay
+                      amount={costForFile}
+                      label="This file will cost"
+                      tooltip="Image and audio files require extra processing and will cost more to upload."
+                      onHasEnoughCoins={setHasEnoughCoins}
+                    />
+                  </div>
+                )}
               </section>
             </div>
 
@@ -228,7 +250,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
 
               {!hasFinishedUpload && (
                 <button
-                  disabled={!file || hasStartedUpload}
+                  disabled={!file || hasStartedUpload || !hasEnoughCoins}
                   className="mb-1 mr-1 rounded bg-[#003049] px-6 py-3 text-sm font-bold uppercase text-white shadow outline-none transition-all duration-150 ease-linear hover:shadow-lg focus:outline-none active:bg-[#003049] disabled:cursor-not-allowed disabled:opacity-50"
                   type="button"
                   onClick={() => void onUpload()}

@@ -59,7 +59,7 @@ export const SummaryCard: React.FC<SummaryCard> = ({
         void router.push(`/file/${summary.fileUid}?summary=${summary.uid}`)
       }
       key={summary.uid}
-      className={`flex cursor-pointer items-center justify-between gap-4 border-[1px]  bg-white p-4 text-sm ${style.width}`}
+      className={`relative flex cursor-pointer items-center justify-between gap-4 border-[1px]  bg-white p-4 text-sm ${style.width}`}
     >
       {fileName && <span className="line-clamp-1">{fileName}</span>}
 
@@ -83,9 +83,11 @@ export const SummaryCard: React.FC<SummaryCard> = ({
       )}
 
       {fixedWidth && (
-        <span className="line-clamp-1 text-gray-500">
-          {typeLabel} {getInfoForLanguage(summary.language)?.emoji}
-        </span>
+        <>
+          <span className="line-clamp-1 text-xs font-semibold uppercase text-gray-500">
+            {typeLabel}
+          </span>
+        </>
       )}
     </div>
   );

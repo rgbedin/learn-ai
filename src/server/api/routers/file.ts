@@ -11,10 +11,15 @@ import * as mammoth from "mammoth";
 import { TRPCError } from "@trpc/server";
 import { prisma } from "~/server/db";
 import axios from "axios";
-import { SummaryType, type ChatHistoryEntry } from "@prisma/client";
+import { SummaryType } from "@prisma/client";
 import { extractPdf } from "~/server/utils/extractPdf";
 import { extractPagesFromFileText } from "~/server/utils/extractPagesFromFileText";
-import { promptText, summarizeText } from "~/server/utils/ai";
+import { summarizeText } from "~/server/utils/ai";
+import {
+  getCostBySummaryTypeAndPages,
+  getCostUploadByFileType,
+} from "~/utils/costs";
+import { deductCoins, ensureUserHasCoins } from "./coins";
 
 const BUCKET_NAME = "learn-ai-m93";
 
@@ -216,6 +221,10 @@ export const fileRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      const cost = getCostUploadByFileType(input.type);
+
+      await ensureUserHasCoins(ctx.userId, cost);
+
       const file = await ctx.prisma.file.create({
         data: {
           key: input.key,
@@ -227,6 +236,8 @@ export const fileRouter = createTRPCRouter({
       });
 
       void extractAndStoreText(input.key);
+
+      await deductCoins(ctx.userId, cost);
 
       return file;
     }),
@@ -478,79 +489,11 @@ export const fileRouter = createTRPCRouter({
         question: z.string().nonempty(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
-      const file = await prisma.file.findFirst({
-        where: {
-          uid: input.fileUid,
-          userId: ctx.userId,
-        },
+    .mutation(() => {
+      throw new TRPCError({
+        code: "NOT_IMPLEMENTED",
+        message: "This feature is not implemented yet",
       });
-
-      if (!file) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "File not found",
-        });
-      }
-
-      if (!file.text) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "File has not been processed yet",
-        });
-      }
-
-      if (!input.chatUid) {
-        const newChat = await prisma.chat.create({
-          data: {
-            fileUid: input.fileUid,
-            firstQuestion: input.question,
-          },
-        });
-
-        input.chatUid = newChat.uid;
-      }
-
-      const chat = await prisma.chat.findFirst({
-        select: {
-          history: true,
-        },
-        where: {
-          uid: input.chatUid,
-          fileUid: input.fileUid,
-        },
-      });
-
-      if (!chat) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Chat not found",
-        });
-      }
-
-      let chatHistory: ChatHistoryEntry[] = [];
-
-      if (chat.history) {
-        // Order the chat history by date and trasform into a single string to feed into AI
-        const orderedHistory = chat.history.sort(
-          (a, b) =>
-            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
-        );
-
-        chatHistory = orderedHistory;
-      }
-
-      const answer = await promptText(input.question, file.key, chatHistory);
-
-      const newHistoryEntry = await prisma.chatHistoryEntry.create({
-        data: {
-          chatUid: input.chatUid,
-          question: input.question,
-          answer: answer,
-        },
-      });
-
-      return newHistoryEntry;
     }),
 
   generateSummary: privateProcedure
@@ -564,6 +507,14 @@ export const fileRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      const cost = getCostBySummaryTypeAndPages(
+        input.type,
+        input.pageStart,
+        input.pageEnd,
+      );
+
+      await ensureUserHasCoins(ctx.userId, cost);
+
       const file = await prisma.file.findFirst({
         where: {
           key: input.key,
@@ -610,6 +561,8 @@ export const fileRouter = createTRPCRouter({
           type: input.type,
         },
       });
+
+      await deductCoins(ctx.userId, cost);
 
       return s;
     }),

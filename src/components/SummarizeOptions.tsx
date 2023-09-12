@@ -3,6 +3,8 @@
 import { type SummaryType, type File } from "@prisma/client";
 import { useEffect, useMemo, useState } from "react";
 import Languages from "~/assets/languages.json";
+import { getCostBySummaryTypeAndPages } from "~/utils/costs";
+import CoinsDisplay from "./CoinsDisplay";
 
 interface SummarizeOptions {
   file: File;
@@ -20,6 +22,7 @@ export const SummarizeOptions: React.FC<SummarizeOptions> = ({
   const [language, setLanguage] = useState<string>();
   const [pageStart, setPageStart] = useState<number>();
   const [pageEnd, setPageEnd] = useState<number>();
+  const [hasEnoughCoins, setHasEnoughCoins] = useState<boolean>(true);
 
   const canSelectPages = useMemo(() => !!file.numPages, [file.numPages]);
 
@@ -49,6 +52,11 @@ export const SummarizeOptions: React.FC<SummarizeOptions> = ({
         : "explanation",
     [type],
   );
+
+  const costCoins = useMemo(() => {
+    const coins = getCostBySummaryTypeAndPages(type, pageStart, pageEnd);
+    return coins;
+  }, [type, pageStart, pageEnd]);
 
   return (
     <div className="relative flex h-full flex-col gap-6">
@@ -145,6 +153,15 @@ export const SummarizeOptions: React.FC<SummarizeOptions> = ({
         )}
       </div>
 
+      {costCoins && (
+        <CoinsDisplay
+          amount={costCoins}
+          label={`Generating this ${label} will cost`}
+          tooltip="Document generation requires us to communicate with an AI provider"
+          onHasEnoughCoins={setHasEnoughCoins}
+        />
+      )}
+
       <div className="flex w-full justify-between">
         <button
           className="rounded bg-gray-300 px-6 py-3 text-sm font-bold uppercase text-gray-500 outline-none transition-all duration-150 ease-linear focus:outline-none"
@@ -155,7 +172,7 @@ export const SummarizeOptions: React.FC<SummarizeOptions> = ({
         </button>
 
         <button
-          disabled={!canProceed}
+          disabled={!canProceed || !hasEnoughCoins}
           className="self-end rounded bg-[#003049] px-6 py-3 text-sm font-bold uppercase text-white shadow outline-none transition-all duration-150 ease-linear hover:shadow-lg focus:outline-none active:bg-[#003049] disabled:cursor-not-allowed disabled:opacity-50"
           type="button"
           onClick={() => onNext(language!, pageStart, pageEnd)}

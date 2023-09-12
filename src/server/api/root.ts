@@ -1,5 +1,6 @@
 import { createTRPCRouter } from "~/server/api/trpc";
 import { fileRouter } from "./routers/file";
+import { coinsRouter } from "./routers/coins";
 
 /**
  * This is the primary router for your server.
@@ -8,6 +9,7 @@ import { fileRouter } from "./routers/file";
  */
 export const appRouter = createTRPCRouter({
   file: fileRouter,
+  coins: coinsRouter,
 });
 
 // export type definition of API

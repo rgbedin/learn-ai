@@ -11,6 +11,11 @@ datasource db {
   relationMode = "prisma"
 }
 
+model Coins {
+  userId  String   @id
+  coins   Int
+}
+
 model File {
   uid          String     @id @default(cuid())
   createdAt    DateTime   @default(now())
