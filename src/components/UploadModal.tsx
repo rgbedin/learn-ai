@@ -36,13 +36,11 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
   const { acceptedFiles, getRootProps, getInputProps, inputRef } = useDropzone({
     accept: {
       "image/*": ["png", "jpg", "jpeg"],
-      "audio/*": ["mp3", "m4a"],
+      "audio/*": ["mp3", "m4a", "wav"],
       "application/pdf": ["pdf"],
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
-        ["docx"],
     },
     maxFiles: 1,
-    maxSize: 30000000,
+    maxSize: 20000000,
     onDropRejected: (err) => {
       toast.error(err[0]?.errors[0]?.message ?? "Invalid file type or size.");
     },
@@ -174,7 +172,11 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
                   <div className="mt-4 flex flex-col rounded-md bg-gray-100 px-2 py-2">
                     <div className="flex justify-between gap-4">
                       <div className="flex items-center gap-4">
-                        <FileIcon type={file.type} size="md" />
+                        <FileIcon
+                          type={file.type}
+                          previewUrl={null}
+                          size="md"
+                        />
 
                         <div className="flex flex-col justify-between gap-1">
                           <span className="line-clamp-1 text-sm">

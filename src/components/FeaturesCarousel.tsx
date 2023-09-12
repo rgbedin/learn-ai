@@ -24,12 +24,12 @@ export const FeaturesCarousel: React.FC = () => {
     <div className="mb-3 flex border-b border-gray-200">
       <FeaturesCard
         imageUrl="https://public-learn-ai-m93.s3.amazonaws.com/img-1.png"
-        title="You can upload a photo of any written text."
+        title="You can upload a photo of any handwritten text."
       />
 
       <FeaturesCard
         imageUrl="https://public-learn-ai-m93.s3.amazonaws.com/img-2.png"
-        title="We also support uploading PDF or DOCX documents."
+        title="We also support uploading PDF documents."
       />
 
       <FeaturesCard

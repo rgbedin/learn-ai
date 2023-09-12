@@ -2,7 +2,7 @@ import { ChatOpenAI } from "langchain/chat_models/openai";
 import { OpenAIEmbeddings } from "langchain/embeddings/openai";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import { ConversationalRetrievalQAChain } from "langchain/chains";
-import { type ChatHistoryEntry } from "@prisma/client";
+import { type SummaryType, type ChatHistoryEntry } from "@prisma/client";
 import { OpenAI, PromptTemplate } from "langchain";
 import { FaissStore } from "langchain/vectorstores/faiss";
 import { loadSummarizationChain } from "langchain/chains";
@@ -29,15 +29,15 @@ const getSummarizePrompt = (languageCode: string) => {
   const language = getInfoForLanguage(languageCode);
 
   return `Summarize the text.
-    Give the summary a short title and provide bullet points for the key parts of the text.
-    Give as many bullet points as possible.
+    Give preference to more paragraphs over fewer paragraphs, and make them as short as possible.
+    Give the summary a short title.
+
     Give your reply in the language ${language?.language} (${language?.code}). 
     Follow the given pattern for the reply:
 
     Section: [title]
 
-    Key points: 
-    [bullet points]`;
+    [summary]`;
 };
 
 const getOutlinePrompt = (languageCode: string) => {
@@ -45,23 +45,35 @@ const getOutlinePrompt = (languageCode: string) => {
 
   return `Create an outline for the text.
     Give the outline a short title and provide bullet points for the key parts of the text.
-    Give as many bullet points as possible.
+    Use a hierarchical structure for the outline.
     Give your reply in the language ${language?.language} (${language?.code}). 
     Follow the given pattern for the reply:
 
     Section: [title]
 
-    Key points: 
-    [bullet points]`;
+    [outline]`;
 };
 
-type SummarizeType = "summary" | "outline";
+const getExplainPrompt = (languageCode: string) => {
+  const language = getInfoForLanguage(languageCode);
 
-const getPrompt = (type: SummarizeType, languageCode: string) => {
-  if (type === "summary") {
+  return `Explain this text like I am 12 years old.
+    Give preference to more paragraphs over fewer paragraphs, and make them as short as possible.
+    Give your reply in the language ${language?.language} (${language?.code}). 
+    Follow the given pattern for the reply:
+
+    Section: [title]
+
+    [explanation]`;
+};
+
+const getPrompt = (type: SummaryType, languageCode: string) => {
+  if (type === "SUMMARY") {
     return getSummarizePrompt(languageCode);
-  } else {
+  } else if (type === "OUTLINE") {
     return getOutlinePrompt(languageCode);
+  } else {
+    return getExplainPrompt(languageCode);
   }
 };
 
@@ -69,7 +81,7 @@ export async function summarizeText(
   text: string,
   file: string,
   languageCode: string,
-  type: SummarizeType,
+  type: SummaryType,
 ) {
   const logger = new FileLogger(file);
   const question = getPrompt(type, languageCode);
@@ -95,7 +107,7 @@ async function summarizeLongText(
   text: string,
   file: string,
   languageCode: string,
-  type: SummarizeType,
+  type: SummaryType,
 ) {
   const logger = new FileLogger(file);
   let tokensUsed = 0;

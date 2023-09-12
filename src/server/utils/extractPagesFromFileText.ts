@@ -3,6 +3,8 @@ export function extractPagesFromFileText(
   pageStart?: number,
   pageEnd?: number,
 ): string {
+  console.debug("Extracting pages from file text", { pageStart, pageEnd });
+
   // Check if the text doesn't have any [[page X]] headers. If not, return the entire text.
   if (!/\[\[page \d+\]\]/.test(text)) {
     return text;
@@ -18,7 +20,6 @@ export function extractPagesFromFileText(
   } else {
     // Adjust the indices for zero-based array indexing
     pageStart -= 1;
-    pageEnd -= 1;
 
     // Extract the relevant pages and concatenate them.
     return pages.slice(pageStart, pageEnd + 1).join("\n");

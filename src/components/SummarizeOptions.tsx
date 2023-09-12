@@ -1,17 +1,19 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable react/no-unescaped-entities */
-import { type File } from "@prisma/client";
+import { type SummaryType, type File } from "@prisma/client";
 import { useEffect, useMemo, useState } from "react";
 import Languages from "~/assets/languages.json";
 
 interface SummarizeOptions {
   file: File;
+  type: SummaryType;
   onCancel: () => void;
   onNext: (language: string, pageStart?: number, pageEnd?: number) => void;
 }
 
 export const SummarizeOptions: React.FC<SummarizeOptions> = ({
   file,
+  type,
   onCancel,
   onNext,
 }) => {
@@ -33,10 +35,25 @@ export const SummarizeOptions: React.FC<SummarizeOptions> = ({
     return !!language;
   }, [canSelectPages, language, pageStart, pageEnd]);
 
+  const isNumPagesHigh = useMemo(
+    () => !!pageStart && !!pageEnd && pageEnd - pageStart > 24,
+    [pageStart, pageEnd],
+  );
+
+  const label = useMemo(
+    () =>
+      type === "SUMMARY"
+        ? "summary"
+        : type === "OUTLINE"
+        ? "outline"
+        : "explanation",
+    [type],
+  );
+
   return (
     <div className="relative flex h-full flex-col gap-6">
       <span className="text-xl font-light">
-        Great, let's write this summary!
+        Great, let's write this {label}!
       </span>
 
       <div className="flex flex-col gap-1">
@@ -44,7 +61,7 @@ export const SummarizeOptions: React.FC<SummarizeOptions> = ({
           htmlFor="countries"
           className="text-sm font-medium text-gray-900"
         >
-          Which language should the summary be in?
+          Which language should the {label} be in?
         </label>
 
         <span className="text-sm text-gray-600">
@@ -71,11 +88,11 @@ export const SummarizeOptions: React.FC<SummarizeOptions> = ({
 
       <div className="flex flex-col gap-1">
         <label htmlFor="length" className="text-sm font-medium text-gray-900">
-          Which pages should the summary be between?
+          Which pages should the {label} be between?
         </label>
 
         <span className="text-sm text-gray-600">
-          The shorter the summary, the more concise it will be and the lesser
+          The shorter the {label}, the more concise it will be and the lesser
           chances of it being accurate.
         </span>
 
@@ -113,10 +130,17 @@ export const SummarizeOptions: React.FC<SummarizeOptions> = ({
           />
         </div>
 
+        {isNumPagesHigh && (
+          <span className="text-sm text-red-800">
+            We recommend keeping the {label} under 25 pages to a more accurate
+            result.
+          </span>
+        )}
+
         {!canSelectPages && (
           <span className="text-sm text-red-800">
-            We couldn't find the number of pages in this file, so we can only
-            summarize the entire file.
+            We can only detect pages in PDF files. We will process the entire
+            file this time.
           </span>
         )}
       </div>

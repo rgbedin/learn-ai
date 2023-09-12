@@ -3,27 +3,22 @@ import { api } from "~/utils/api";
 import { PageBase } from "../../components/PageBase";
 import DocViewer, { DocViewerRenderers } from "@cyntler/react-doc-viewer";
 import { useMemo, useState } from "react";
-import { OptionPicker } from "~/components/OptionPicker";
+import { OptionPicker, type OptionType } from "~/components/OptionPicker";
 import dayjs from "dayjs";
 import { useSearchParams } from "next/navigation";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { SummaryView } from "~/components/SummaryView";
 import { SummarizeModal } from "~/components/SummarizeModal";
-import { OutlineView } from "~/components/OutlineView";
-import { OutlineModal } from "~/components/OutlineModal";
 import { ChatModal } from "~/components/ChatModal";
 import { useRouter } from "next/router";
 
 dayjs.extend(relativeTime);
-
-type OptionType = "summarize" | "outline" | "chat";
 
 export const FilePage: NextPage<{ uid: string }> = ({ uid }) => {
   const [optionSelected, setOptionSelected] = useState<OptionType>();
 
   const searchParams = useSearchParams();
   const summary = searchParams.get("summary");
-  const outline = searchParams.get("outline");
   const chat = searchParams.get("chat");
 
   const { data: file } = api.file.getFileByUid.useQuery(uid);
@@ -42,6 +37,8 @@ export const FilePage: NextPage<{ uid: string }> = ({ uid }) => {
     () => file?.type === "application/pdf" || file?.type.includes("audio/"),
     [file?.type],
   );
+
+  const isAudio = useMemo(() => file?.type.includes("audio/"), [file?.type]);
 
   const documentViewer = useMemo(() => {
     return (
@@ -63,18 +60,35 @@ export const FilePage: NextPage<{ uid: string }> = ({ uid }) => {
             )}
 
             {renderAsObject && (
-              <object
-                data={downloadUrl}
-                type={file?.type}
-                width="100%"
-                height="100%"
-              />
+              <div className="flex flex-shrink-0 flex-col gap-3">
+                <object
+                  data={downloadUrl}
+                  type={file?.type}
+                  height={isAudio ? undefined : "100%"}
+                />
+
+                {isAudio && (
+                  <div className="flex flex-col gap-3">
+                    <span className="text-lg font-light">Transcript</span>
+                    <span className="whitespace-pre-line text-justify">
+                      {file?.text}
+                    </span>
+                  </div>
+                )}
+              </div>
             )}
           </>
         )}
       </>
     );
-  }, [downloadUrl, file?.type, file?.name, renderAsObject]);
+  }, [
+    downloadUrl,
+    renderAsObject,
+    file?.type,
+    file?.name,
+    file?.text,
+    isAudio,
+  ]);
 
   const router = useRouter();
 
@@ -87,8 +101,6 @@ export const FilePage: NextPage<{ uid: string }> = ({ uid }) => {
           <div className="flex flex-col gap-2">
             {summary && <SummaryView summaryUid={summary} />}
 
-            {outline && <OutlineView outlineUid={outline} />}
-
             {chat && file && (
               <ChatModal
                 file={file}
@@ -99,22 +111,16 @@ export const FilePage: NextPage<{ uid: string }> = ({ uid }) => {
               />
             )}
 
-            {!summary && !outline && (
+            {!summary && (
               <>
                 <OptionPicker
                   fileUid={uid}
                   onSelectOption={setOptionSelected}
                 />
 
-                {optionSelected === "summarize" && file && (
+                {!!optionSelected && optionSelected !== "chat" && file && (
                   <SummarizeModal
-                    file={file}
-                    onClose={() => setOptionSelected(undefined)}
-                  />
-                )}
-
-                {optionSelected === "outline" && file && (
-                  <OutlineModal
+                    type={optionSelected}
                     file={file}
                     onClose={() => setOptionSelected(undefined)}
                   />

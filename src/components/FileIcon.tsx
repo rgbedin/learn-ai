@@ -4,13 +4,19 @@
 import React from "react";
 import { FileIcon as FIcon, defaultStyles } from "react-file-icon";
 import mime from "mime-types";
+import Image from "next/image";
 
 interface FileIconProps {
   type: string;
+  previewUrl: string | null;
   size: "lg" | "md";
 }
 
-export const FileIcon: React.FC<FileIconProps> = ({ type, size }) => {
+export const FileIcon: React.FC<FileIconProps> = ({
+  type,
+  size,
+  previewUrl,
+}) => {
   const ext = mime.extension(type) || "bin";
 
   const getStyle = () => {
@@ -26,7 +32,10 @@ export const FileIcon: React.FC<FileIconProps> = ({ type, size }) => {
 
   return (
     <div className={`flex items-center ${sizes[size]}`}>
-      <FIcon extension={ext} {...getStyle()} />
+      {!previewUrl && <FIcon extension={ext} {...getStyle()} />}
+      {previewUrl && (
+        <Image src={previewUrl} height={120} width={120} alt="File" />
+      )}
     </div>
   );
 };

@@ -23,7 +23,6 @@ model File {
   text         String?    @db.LongText
   hasProcessed Boolean    @default(false)
   summaries    Summary[]
-  outlines     Outline[]
   chats        Chat[]
 }
 
@@ -53,6 +52,7 @@ model Summary {
   uid       String   @id @default(cuid())
   createdAt DateTime @default(now())
   text      String   @db.LongText
+  type      SummaryType
   language  String
   pageStart Int?
   pageEnd   Int?
@@ -62,13 +62,9 @@ model Summary {
   @@index([fileUid])
 }
 
-model Outline {
-  uid       String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  text      String   @db.LongText
-  language  String
-  file      File     @relation(fields: [fileUid], references: [uid])
-  fileUid   String
-
-  @@index([fileUid])
+enum SummaryType {
+  SUMMARY
+  OUTLINE
+  EXPLAIN
 }
+

@@ -24,6 +24,10 @@ const config = {
         protocol: "https",
         hostname: "public-learn-ai-m93.s3.amazonaws.com",
       },
+      {
+        protocol: "https",
+        hostname: "learn-ai-m93.s3.amazonaws.com",
+      },
     ],
   },
 };

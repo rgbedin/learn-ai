@@ -4,10 +4,9 @@ import { api } from "~/utils/api";
 import { SummaryCard } from "./SummaryCard";
 import { CreateNew } from "./CreateNewCard";
 import { Transition } from "@headlessui/react";
-import { OutlineCard } from "./OutlineCard";
-import { ChatCard } from "./ChatCard";
+import { type SummaryType } from "@prisma/client";
 
-export type OptionType = "summarize" | "outline" | "chat";
+export type OptionType = SummaryType | "chat";
 
 interface OptionPickerProps {
   fileUid: string;
@@ -22,14 +21,17 @@ export const OptionPicker: React.FC<OptionPickerProps> = ({
 
   const { data: allSummaries } = api.file.getSummaries.useQuery({
     fileUid,
+    type: "SUMMARY",
   });
 
-  const { data: allOutlines } = api.file.getOutlines.useQuery({
+  const { data: allOutlines } = api.file.getSummaries.useQuery({
     fileUid,
+    type: "OUTLINE",
   });
 
-  const { data: allChats } = api.file.getAllChats.useQuery({
+  const { data: allExplains } = api.file.getSummaries.useQuery({
     fileUid,
+    type: "EXPLAIN",
   });
 
   return (
@@ -37,15 +39,15 @@ export const OptionPicker: React.FC<OptionPickerProps> = ({
       <div className="flex flex-col gap-1">
         <OptionCard
           title="Summarize Content"
-          isSelected={optionSelected === "summarize"}
-          onClick={() => setOptionSelected("summarize")}
+          isSelected={optionSelected === "SUMMARY"}
+          onClick={() => setOptionSelected("SUMMARY")}
           description="Summarize the content of the file. You can specify the length of the summary."
           imageUrl="https://public-learn-ai-m93.s3.amazonaws.com/img-4-no-bg.png"
         />
 
         <Transition
           className="flex flex-col gap-1"
-          show={optionSelected === "summarize"}
+          show={optionSelected === "SUMMARY"}
           enter="transition-all ease-in-out duration-300"
           enterFrom="h-0 opacity-0 translate-y-6"
           enterTo="h-100% opacity-100 translate-y-0"
@@ -55,7 +57,7 @@ export const OptionPicker: React.FC<OptionPickerProps> = ({
         >
           <CreateNew
             label="Create New Summary"
-            onClick={() => onSelectOption("summarize")}
+            onClick={() => onSelectOption("SUMMARY")}
           />
 
           {allSummaries?.map((summary) => (
@@ -67,15 +69,15 @@ export const OptionPicker: React.FC<OptionPickerProps> = ({
       <div className="flex flex-col gap-1">
         <OptionCard
           title="Create Outline"
-          isSelected={optionSelected === "outline"}
-          onClick={() => setOptionSelected("outline")}
+          isSelected={optionSelected === "OUTLINE"}
+          onClick={() => setOptionSelected("OUTLINE")}
           description="Create a bullet point outline of the file. Useful for quickly reviewing the content."
           imageUrl="https://public-learn-ai-m93.s3.amazonaws.com/img-5-no-bg.png"
         />
 
         <Transition
           className="flex flex-col gap-1"
-          show={optionSelected === "outline"}
+          show={optionSelected === "OUTLINE"}
           enter="transition-all ease-in-out duration-300"
           enterFrom="h-0 opacity-0 translate-y-6"
           enterTo="h-100% opacity-100 translate-y-0"
@@ -85,27 +87,27 @@ export const OptionPicker: React.FC<OptionPickerProps> = ({
         >
           <CreateNew
             label="Create New Outline"
-            onClick={() => onSelectOption("outline")}
+            onClick={() => onSelectOption("OUTLINE")}
           />
 
           {allOutlines?.map((outline) => (
-            <OutlineCard key={outline.uid} outline={outline} />
+            <SummaryCard key={outline.uid} summary={outline} />
           ))}
         </Transition>
       </div>
 
       <div className="flex flex-col gap-1">
         <OptionCard
-          title="Ask Questions"
-          isSelected={optionSelected === "chat"}
-          onClick={() => setOptionSelected("chat")}
-          description="Ask questions about the content of the file as if you were talking to a friendly expert."
+          title="Explain Like I'm 12 Years Old"
+          isSelected={optionSelected === "EXPLAIN"}
+          onClick={() => setOptionSelected("EXPLAIN")}
+          description="Get a quick explanation of the content of the file. Simplify complex concepts and jargon."
           imageUrl="https://public-learn-ai-m93.s3.amazonaws.com/img-6-no-bg.png"
         />
 
         <Transition
           className="flex flex-col gap-1"
-          show={optionSelected === "chat"}
+          show={optionSelected === "EXPLAIN"}
           enter="transition-all ease-in-out duration-300"
           enterFrom="h-0 opacity-0 translate-y-6"
           enterTo="h-100% opacity-100 translate-y-0"
@@ -114,11 +116,13 @@ export const OptionPicker: React.FC<OptionPickerProps> = ({
           leaveTo="h-0 opacity-0"
         >
           <CreateNew
-            label="Start New Chat"
-            onClick={() => onSelectOption("chat")}
+            label="Start New Explanation"
+            onClick={() => onSelectOption("EXPLAIN")}
           />
 
-          {allChats?.map((chat) => <ChatCard key={chat.uid} chat={chat} />)}
+          {allExplains?.map((exp) => (
+            <SummaryCard key={exp.uid} summary={exp} />
+          ))}
         </Transition>
       </div>
     </div>

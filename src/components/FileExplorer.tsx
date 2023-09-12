@@ -8,7 +8,7 @@ export default function FileExplorer() {
   const router = useRouter();
 
   return (
-    <div className="flex flex-wrap gap-4">
+    <>
       {myFiles?.map((file) => (
         <FileCard
           key={file.uid}
@@ -18,6 +18,6 @@ export default function FileExplorer() {
           }}
         />
       ))}
-    </div>
+    </>
   );
 }

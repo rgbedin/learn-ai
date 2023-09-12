@@ -11,7 +11,7 @@ import * as mammoth from "mammoth";
 import { TRPCError } from "@trpc/server";
 import { prisma } from "~/server/db";
 import axios from "axios";
-import { type ChatHistoryEntry } from "@prisma/client";
+import { SummaryType, type ChatHistoryEntry } from "@prisma/client";
 import { extractPdf } from "~/server/utils/extractPdf";
 import { extractPagesFromFileText } from "~/server/utils/extractPagesFromFileText";
 import { promptText, summarizeText } from "~/server/utils/ai";
@@ -96,7 +96,11 @@ const transcribeAudio = async (key: string): Promise<string> => {
   const params: AWS.TranscribeService.StartTranscriptionJobRequest = {
     TranscriptionJobName: `JobName-${Date.now()}`, // Unique name for each transcription job
     IdentifyLanguage: true,
-    MediaFormat: key.endsWith("mp3") ? "mp3" : "mp4",
+    MediaFormat: key.endsWith("mp3")
+      ? "mp3"
+      : key.endsWith("wav")
+      ? "wav"
+      : "mp4",
     Media: {
       MediaFileUri: `s3://${BUCKET_NAME}/${key}`,
     },
@@ -222,14 +226,7 @@ export const fileRouter = createTRPCRouter({
         },
       });
 
-      const { text } = await extractAndStoreText(input.key);
-
-      if (!text) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "File type not supported",
-        });
-      }
+      void extractAndStoreText(input.key);
 
       return file;
     }),
@@ -272,7 +269,13 @@ export const fileRouter = createTRPCRouter({
         });
       }
 
-      return file;
+      let previewUrl: string | null = null;
+
+      if (file.type.includes("image")) {
+        previewUrl = await getDownloadUrl(file.key);
+      }
+
+      return { ...file, previewUrl };
     }),
 
   getAllUserFiles: privateProcedure.query(async ({ ctx }) => {
@@ -286,6 +289,7 @@ export const fileRouter = createTRPCRouter({
         hasProcessed: true,
         createdAt: true,
         size: true,
+        numPages: true,
       },
       where: {
         userId: ctx.userId,
@@ -364,30 +368,13 @@ export const fileRouter = createTRPCRouter({
       return summary;
     }),
 
-  getOutline: privateProcedure
-    .input(z.string().nonempty())
-    .query(async ({ ctx, input }) => {
-      const outline = await ctx.prisma.outline.findUnique({
-        where: {
-          uid: input,
-          file: {
-            userId: ctx.userId,
-          },
-        },
-      });
-
-      if (!outline) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Outline not found",
-        });
-      }
-
-      return outline;
-    }),
-
   getSummaries: privateProcedure
-    .input(z.object({ fileUid: z.string().nonempty() }))
+    .input(
+      z.object({
+        fileUid: z.string().nonempty(),
+        type: z.nativeEnum(SummaryType),
+      }),
+    )
     .query(async ({ ctx, input }) => {
       const summaries = await ctx.prisma.summary.findMany({
         select: {
@@ -397,31 +384,15 @@ export const fileRouter = createTRPCRouter({
           uid: true,
           pageStart: true,
           pageEnd: true,
+          type: true,
         },
         where: {
           fileUid: input.fileUid,
+          type: input.type,
         },
       });
 
       return summaries;
-    }),
-
-  getOutlines: privateProcedure
-    .input(z.object({ fileUid: z.string().nonempty() }))
-    .query(async ({ ctx, input }) => {
-      const outlines = await ctx.prisma.outline.findMany({
-        select: {
-          createdAt: true,
-          fileUid: true,
-          language: true,
-          uid: true,
-        },
-        where: {
-          fileUid: input.fileUid,
-        },
-      });
-
-      return outlines;
     }),
 
   getAllChats: privateProcedure
@@ -555,6 +526,7 @@ export const fileRouter = createTRPCRouter({
   generateSummary: privateProcedure
     .input(
       z.object({
+        type: z.nativeEnum(SummaryType),
         key: z.string().nonempty(),
         languageCode: z.string().nonempty(),
         pageStart: z.number().int().positive().optional(),
@@ -589,11 +561,13 @@ export const fileRouter = createTRPCRouter({
         input.pageEnd,
       );
 
+      console.debug("Extracted text", text);
+
       const summary = await summarizeText(
         text,
         file.name,
         input.languageCode,
-        "summary",
+        input.type,
       );
 
       const s = await prisma.summary.create({
@@ -603,58 +577,10 @@ export const fileRouter = createTRPCRouter({
           text: summary,
           pageStart: input.pageStart,
           pageEnd: input.pageEnd,
+          type: input.type,
         },
       });
 
       return s;
-    }),
-
-  generateOutline: privateProcedure
-    .input(
-      z.object({
-        key: z.string().nonempty(),
-        languageCode: z.string().nonempty(),
-      }),
-    )
-    .mutation(async ({ ctx, input }) => {
-      const file = await prisma.file.findFirst({
-        where: {
-          key: input.key,
-          userId: ctx.userId,
-        },
-      });
-
-      if (!file) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "File not found",
-        });
-      }
-
-      if (!file.text) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "File has not been processed yet",
-        });
-      }
-
-      const text = extractPagesFromFileText(file.text);
-
-      const outline = await summarizeText(
-        text,
-        file.name,
-        input.languageCode,
-        "outline",
-      );
-
-      const o = await prisma.outline.create({
-        data: {
-          fileUid: file.uid,
-          language: input.languageCode,
-          text: outline,
-        },
-      });
-
-      return o;
     }),
 });

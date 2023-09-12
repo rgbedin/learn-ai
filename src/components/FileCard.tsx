@@ -7,6 +7,7 @@ import { humanFileSize } from "~/utils/humanFileSize";
 import dayjs from "dayjs";
 
 import relativeTime from "dayjs/plugin/relativeTime";
+import { toast } from "react-hot-toast";
 
 dayjs.extend(relativeTime);
 
@@ -32,6 +33,17 @@ export const FileCard: React.FC<FileCardProps> = ({ file, onClick }) => {
 
   const isLoading = !data?.hasProcessed;
 
+  const onClickWrapper = () => {
+    if (isLoading) {
+      toast.error("File is still processing.");
+      return;
+    }
+
+    if (!isEditing) {
+      onClick();
+    }
+  };
+
   const onUpdateFile = () => {
     updateFile.mutate(
       {
@@ -50,19 +62,17 @@ export const FileCard: React.FC<FileCardProps> = ({ file, onClick }) => {
 
   return (
     <div
-      onClick={() => {
-        if (!isEditing) {
-          onClick();
-        }
-      }}
+      onClick={onClickWrapper}
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
       className="border-1 border-1 relative flex h-[200px] w-[190px] cursor-pointer flex-col items-center justify-between gap-4 border-gray-200 bg-white px-4 pb-4 pt-6 shadow-md transition hover:shadow-lg"
     >
-      {!isLoading && <FileIcon type={file.type} size="lg" />}
+      {!isLoading && (
+        <FileIcon type={file.type} previewUrl={data?.previewUrl} size="lg" />
+      )}
 
       {isLoading && (
-        <div className="h-16 w-14 animate-pulse rounded-md bg-gray-200" />
+        <div className="h-24 w-24 animate-pulse rounded-md bg-gray-200" />
       )}
 
       {isHovering && (
@@ -104,10 +114,6 @@ export const FileCard: React.FC<FileCardProps> = ({ file, onClick }) => {
             onUpdateFile();
           }}
         />
-      )}
-
-      {!data?.hasProcessed && (
-        <div className="h-4 w-1/2 animate-pulse rounded-full bg-gray-200" />
       )}
     </div>
   );
