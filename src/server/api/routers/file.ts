@@ -11,9 +11,10 @@ import * as mammoth from "mammoth";
 import { TRPCError } from "@trpc/server";
 import { prisma } from "~/server/db";
 import axios from "axios";
-import pdf from "pdf-parse";
-import { summarizeText, promptFile, summarizeV2 } from "~/server/utils/ai";
 import { type ChatHistoryEntry } from "@prisma/client";
+import { extractPdf } from "~/server/utils/extractPdf";
+import { extractPagesFromFileText } from "~/server/utils/extractPagesFromFileText";
+import { promptText, summarizeText } from "~/server/utils/ai";
 
 const BUCKET_NAME = "learn-ai-m93";
 
@@ -138,7 +139,12 @@ const transcribeAudio = async (key: string): Promise<string> => {
   return transcriptData.results.transcripts[0].transcript;
 };
 
-const extractAndStoreText = async (key: string) => {
+const extractAndStoreText = async (
+  key: string,
+): Promise<{
+  text: string;
+  numPages?: number;
+}> => {
   const file = await prisma.file.findFirstOrThrow({
     where: {
       key,
@@ -154,11 +160,13 @@ const extractAndStoreText = async (key: string) => {
   };
 
   let text = null;
+  let numPages: number | undefined = undefined;
 
   if (file.type === "application/pdf") {
-    const thePdf = await pdf(await downloadAsBuffer());
+    const { text: t, numPages: n } = await extractPdf(await downloadAsBuffer());
 
-    text = thePdf.text;
+    text = t;
+    numPages = n;
   } else if (
     file.type ===
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
@@ -186,10 +194,11 @@ const extractAndStoreText = async (key: string) => {
     data: {
       text,
       hasProcessed: true,
+      numPages,
     },
   });
 
-  return text;
+  return { text, numPages };
 };
 
 export const fileRouter = createTRPCRouter({
@@ -213,7 +222,7 @@ export const fileRouter = createTRPCRouter({
         },
       });
 
-      const text = await extractAndStoreText(input.key);
+      const { text } = await extractAndStoreText(input.key);
 
       if (!text) {
         throw new TRPCError({
@@ -385,8 +394,9 @@ export const fileRouter = createTRPCRouter({
           createdAt: true,
           fileUid: true,
           language: true,
-          numParagraphs: true,
           uid: true,
+          pageStart: true,
+          pageEnd: true,
         },
         where: {
           fileUid: input.fileUid,
@@ -529,7 +539,7 @@ export const fileRouter = createTRPCRouter({
         chatHistory = orderedHistory;
       }
 
-      const answer = promptFile(input.question, file.key);
+      const answer = await promptText(input.question, file.key, chatHistory);
 
       const newHistoryEntry = await prisma.chatHistoryEntry.create({
         data: {
@@ -547,7 +557,8 @@ export const fileRouter = createTRPCRouter({
       z.object({
         key: z.string().nonempty(),
         languageCode: z.string().nonempty(),
-        numParagraphs: z.number().int().positive(),
+        pageStart: z.number().int().positive().optional(),
+        pageEnd: z.number().int().positive().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -572,18 +583,26 @@ export const fileRouter = createTRPCRouter({
         });
       }
 
-      const summary = await summarizeV2(
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-        file.text!,
+      const text = extractPagesFromFileText(
+        file.text,
+        input.pageStart,
+        input.pageEnd,
+      );
+
+      const summary = await summarizeText(
+        text,
         file.name,
+        input.languageCode,
+        "summary",
       );
 
       const s = await prisma.summary.create({
         data: {
           fileUid: file.uid,
           language: input.languageCode,
-          numParagraphs: input.numParagraphs,
           text: summary,
+          pageStart: input.pageStart,
+          pageEnd: input.pageEnd,
         },
       });
 
@@ -619,9 +638,11 @@ export const fileRouter = createTRPCRouter({
         });
       }
 
+      const text = extractPagesFromFileText(file.text);
+
       const outline = await summarizeText(
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-        file.text!,
+        text,
+        file.name,
         input.languageCode,
         "outline",
       );

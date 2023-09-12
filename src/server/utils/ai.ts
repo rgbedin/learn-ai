@@ -13,42 +13,107 @@ import { type Chunk, createChunks } from "./ai-helpers/createChunks";
 import { runKmeans } from "./ai-helpers/runKmeans";
 import { callOpenAi } from "./ai-helpers/callOpenAi";
 import {
-  DEFAULT_AI_MODEL_MAX_TOKENS,
+  DEFAULT_AI_MODEL,
   DEFAULT_EMBEDDING_MODEL_PRICE_PER_1000,
-  DEFAULT_REPLY_MAX_TOKENS,
 } from "./ai-helpers/aiConstants";
 import { FileLogger } from "./logHelper";
+import { getModelThatFits } from "./ai-helpers/getModelThatFits";
 
-const K_MEANS_NUMBER_CLUSTERS = 10;
-const BUCKET_SIZE_FOR_SUMMARY = 100;
 const BATCH_SIZE_FOR_EMBEDDINGS = 250;
-const PROMPT_SUMMARIZE_CHUNK = `Summarize the following text.`;
-const PROMPT_COMBINE_SUMMARY = `
-    Generate a summary of the following text.
-    Make sure the summary includes the following elements:
 
-    * An introduction paragraph that provides an overview of the topic.
-    * Bullet points that list the key points of the text.
-    * A conclusion paragraph that summarizes the main points of the text.
-`;
+const NUM_REPRESENTATIVES_CHUNKS_PER_BUCKET = 3;
 
-export async function summarizeV2(text: string, file: string) {
+const CHUNKS_PER_BUCKET = 15;
+
+const getSummarizePrompt = (languageCode: string) => {
+  const language = getInfoForLanguage(languageCode);
+
+  return `Summarize the text.
+    Give the summary a short title and provide bullet points for the key parts of the text.
+    Give as many bullet points as possible.
+    Give your reply in the language ${language?.language} (${language?.code}). 
+    Follow the given pattern for the reply:
+
+    Section: [title]
+
+    Key points: 
+    [bullet points]`;
+};
+
+const getOutlinePrompt = (languageCode: string) => {
+  const language = getInfoForLanguage(languageCode);
+
+  return `Create an outline for the text.
+    Give the outline a short title and provide bullet points for the key parts of the text.
+    Give as many bullet points as possible.
+    Give your reply in the language ${language?.language} (${language?.code}). 
+    Follow the given pattern for the reply:
+
+    Section: [title]
+
+    Key points: 
+    [bullet points]`;
+};
+
+type SummarizeType = "summary" | "outline";
+
+const getPrompt = (type: SummarizeType, languageCode: string) => {
+  if (type === "summary") {
+    return getSummarizePrompt(languageCode);
+  } else {
+    return getOutlinePrompt(languageCode);
+  }
+};
+
+export async function summarizeText(
+  text: string,
+  file: string,
+  languageCode: string,
+  type: SummarizeType,
+) {
+  const logger = new FileLogger(file);
+  const question = getPrompt(type, languageCode);
+  const model = getModelThatFits(text, question);
+
+  if (model) {
+    console.debug("Found model that fits text", model);
+    const prompt = buildPrompt([text], question, model.model, model.maxTokens);
+    logger.logToFile("single-prompt.txt", prompt);
+
+    const openAIResponse = await callOpenAi(prompt, logger, model);
+
+    console.debug("OpenAI response", openAIResponse);
+
+    return openAIResponse.message;
+  } else {
+    console.debug("No model found that fits text");
+    return summarizeLongText(text, file, languageCode, type);
+  }
+}
+
+async function summarizeLongText(
+  text: string,
+  file: string,
+  languageCode: string,
+  type: SummarizeType,
+) {
   const logger = new FileLogger(file);
   let tokensUsed = 0;
   let estimatedCost = 0;
 
-  const chunks = createChunks(text, file);
+  const chunks = createChunks(text, file, logger);
 
   const { embeddings: vectors, tokensUsed: tokensUsedEmbeddings } =
     await getEmbeddings(chunks, BATCH_SIZE_FOR_EMBEDDINGS);
 
   tokensUsed += tokensUsedEmbeddings;
+
   estimatedCost +=
     (tokensUsedEmbeddings / 1000) * DEFAULT_EMBEDDING_MODEL_PRICE_PER_1000;
 
   const summariesOfBuckets = await getSummariesOfBuckets(chunks, vectors);
 
-  const finalSummary = await compileFinalSummary(summariesOfBuckets);
+  const finalSummary = compileFinalSummary(summariesOfBuckets);
 
   logger.logToFile(
     "summary.txt",
@@ -73,7 +138,7 @@ export async function summarizeV2(text: string, file: string) {
     chunks: Chunk[],
     vectors: number[][],
   ): Promise<string[]> {
-    const numOfBuckets = Math.ceil(chunks.length / BUCKET_SIZE_FOR_SUMMARY);
+    const numOfBuckets = Math.ceil(chunks.length / CHUNKS_PER_BUCKET);
 
     const orderedSummaries: string[] = [];
 
@@ -81,11 +146,12 @@ export async function summarizeV2(text: string, file: string) {
       async (_, i) => {
         const summary = await summarizeBucketUsingKmeans(
           i,
-          i * BUCKET_SIZE_FOR_SUMMARY,
+          i * CHUNKS_PER_BUCKET,
           chunks,
           vectors,
           {
-            includeFirstChunk: i === 0,
+            includeFirstChunk: true,
+            includeLastChunk: true,
           },
         );
 
@@ -119,37 +185,48 @@ export async function summarizeV2(text: string, file: string) {
     vectors: number[][],
     options?: {
       includeFirstChunk?: boolean;
+      includeLastChunk?: boolean;
     },
   ): Promise<string> {
     console.debug("Summarizing bucket using K-means", numBucket, options);
 
-    const bucketOfChunks = chunks.slice(start, start + BUCKET_SIZE_FOR_SUMMARY);
+    const bucketOfChunks = chunks.slice(start, start + CHUNKS_PER_BUCKET);
 
-    const bucketOfVectors = vectors.slice(
-      start,
-      start + BUCKET_SIZE_FOR_SUMMARY,
-    );
+    const bucketOfVectors = vectors.slice(start, start + CHUNKS_PER_BUCKET);
 
-    const numClusters = options?.includeFirstChunk
-      ? K_MEANS_NUMBER_CLUSTERS - 1
-      : K_MEANS_NUMBER_CLUSTERS;
+    let numClusters = NUM_REPRESENTATIVES_CHUNKS_PER_BUCKET;
 
     const v = [...bucketOfVectors];
     const c = [...bucketOfChunks];
 
     if (options?.includeFirstChunk) {
+      numClusters -= 1;
       v.shift();
       c.shift();
     }
 
-    const bucketRepresentatives = runKmeans(v, c, numClusters);
-
-    if (options?.includeFirstChunk) {
-      bucketRepresentatives.unshift(bucketOfChunks[0]!);
+    if (options?.includeLastChunk) {
+      numClusters -= 1;
+      v.pop();
+      c.pop();
     }
 
-    // Order the representatives by their position in the original text.
-    bucketRepresentatives.sort((a, b) => a.start - b.start);
+    let bucketRepresentatives = bucketOfChunks;
+
+    if (numClusters < v.length) {
+      bucketRepresentatives = runKmeans(v, c, numClusters);
+
+      if (options?.includeFirstChunk) {
+        bucketRepresentatives.unshift(bucketOfChunks[0]!);
+      }
+
+      if (options?.includeLastChunk) {
+        bucketRepresentatives.push(bucketOfChunks[bucketOfChunks.length - 1]!);
+      }
+
+      // Order the representatives by their position in the original text.
+      bucketRepresentatives.sort((a, b) => a.start - b.start);
+    }
 
     const representativesTexts = bucketRepresentatives.map(
       (match) => match.text,
@@ -160,7 +237,10 @@ export async function summarizeV2(text: string, file: string) {
       JSON.stringify(bucketRepresentatives, null, 2),
     );
 
-    const prompt = buildPrompt(representativesTexts, PROMPT_SUMMARIZE_CHUNK);
+    const prompt = buildPrompt(
+      representativesTexts,
+      getPrompt(type, languageCode),
+    );
 
     const {
       message,
@@ -181,140 +261,16 @@ export async function summarizeV2(text: string, file: string) {
    * @param summaries The summaries of all buckets.
    * @returns The final summarized text.
    */
-  async function compileFinalSummary(summaries: string[]): Promise<string> {
-    const maxRepliesFitInOneCall = Math.floor(
-      DEFAULT_AI_MODEL_MAX_TOKENS / DEFAULT_REPLY_MAX_TOKENS - 1,
-    );
+  function compileFinalSummary(summaries: string[]): string {
+    console.debug("Compiling final summary");
 
-    while (summaries.length > maxRepliesFitInOneCall) {
-      summaries = await summarizeAndCombine(summaries);
-    }
+    const mergedSummaries = summaries.join("\n\n");
 
-    const finalPrompt = buildPrompt(summaries, PROMPT_COMBINE_SUMMARY);
-
-    const {
-      message,
-      tokensUsed: tokensUsedInCall,
-      estimatedPricing: ep,
-    } = await callOpenAi(finalPrompt, logger);
-
-    tokensUsed += tokensUsedInCall;
-    estimatedCost += ep;
-
-    return message;
-  }
-
-  /**
-   * Summarizes and combines an array of summaries.
-   * @param summaries The summaries to be combined.
-   * @returns A combined summary.
-   */
-  async function summarizeAndCombine(summaries: string[]): Promise<string[]> {
-    const splitSummaries = splitIntoManageableSummaries(summaries);
-
-    const combinedSummaries: string[] = [];
-
-    await Promise.all(
-      splitSummaries.map(async (summaryBatch, i) => {
-        const {
-          message,
-          tokensUsed: tokensUsedInCall,
-          estimatedPricing: ep,
-        } = await callOpenAi(summaryBatch, logger);
-
-        tokensUsed += tokensUsedInCall;
-        estimatedCost += ep;
-
-        logger.logToFile(`summaries-summary-${i}.txt`, message);
-
-        combinedSummaries[i] = message;
-      }),
-    );
-
-    logger.logToFile(
-      `combined-summaries.txt`,
-      JSON.stringify(combinedSummaries, null, 2),
-    );
-
-    return combinedSummaries;
-  }
-
-  /**
-   * Splits summaries into manageable groups for processing.
-   * @param summaries The summaries to be split.
-   * @returns Summaries split into manageable groups.
-   */
-  function splitIntoManageableSummaries(summaries: string[]): string[] {
-    const maxRepliesFitInOneCall = Math.floor(
-      DEFAULT_AI_MODEL_MAX_TOKENS / DEFAULT_REPLY_MAX_TOKENS - 1,
-    );
-
-    if (summaries.length <= maxRepliesFitInOneCall) {
-      return [buildPrompt(summaries, PROMPT_SUMMARIZE_CHUNK)];
-    } else {
-      const half = Math.ceil(summaries.length / 2);
-
-      return [
-        ...splitIntoManageableSummaries(summaries.slice(0, half)),
-        ...splitIntoManageableSummaries(summaries.slice(half)),
-      ];
-    }
+    return mergedSummaries;
   }
 }
 
-export function promptFile(question: string, fileKey: string) {
-  // const questionEmbedding = await getEmbedding(
-  //   question,
-  //   "text-embedding-ada-002",
-  // );
-
-  // console.debug("Retrieving embedding for question", questionEmbedding);
-
-  // const matches = await retrieve(questionEmbedding, 4, fileKey);
-
-  // console.debug("Retrieved matches from vector DB", matches, fileKey);
-
-  // // Extract context text and titles from the matches
-  // const contexts: Context[] = matches!.map((match) => {
-  //   return {
-  //     text: match.metadata?.text ?? "",
-  //     title: match.metadata?.title ?? "",
-  //   };
-  // });
-
-  // console.log(
-  //   "[QuestionHandler] Retrieved context from vector DB:\n",
-  //   contexts,
-  // );
-
-  // // step 3: Structure the prompt with a context section + question, using top x results from vector DB as the context
-  // const contextTexts = contexts.map((context) => context.text);
-
-  // let prompt = buildPrompt(contextTexts, question);
-
-  // if (!prompt) {
-  //   prompt = question;
-  // }
-
-  // const openAIResponse = await callOpenAi(
-  //   prompt,
-  //   "You are a helpful assistant answering questions based on the context provided.",
-  //   512,
-  // );
-
-  // console.log("[QuestionHandler] OpenAI response:\n", openAIResponse);
-
-  // const answer = {
-  //   answer: openAIResponse,
-  //   context: contexts,
-  // };
-  //
-  // return openAIResponse;
-
-  return "";
-}
-
-export async function promptLongText(
+export async function promptText(
   text: string,
   prompt: string,
   chatHistory?: ChatHistoryEntry[],
@@ -341,7 +297,7 @@ export async function promptLongText(
   // Create the conversational interface
   const convInterface = ConversationalRetrievalQAChain.fromLLM(
     new ChatOpenAI({
-      modelName: "gpt-4",
+      modelName: DEFAULT_AI_MODEL,
       temperature: 0,
     }),
     retriever,
@@ -372,7 +328,7 @@ export async function promptLongText(
   return (result as any).text as string;
 }
 
-export async function summarizeText(
+export async function legacySummarizeText(
   text: string,
   languageCode: string,
   type: "summary" | "outline",
@@ -381,7 +337,7 @@ export async function summarizeText(
 
   // Create the text splitter and split the text into chunks
   const textSplitter = new RecursiveCharacterTextSplitter({
-    chunkSize: 18000,
+    chunkSize: 1000,
   });
 
   const texts = await textSplitter.createDocuments([text]);
@@ -389,7 +345,6 @@ export async function summarizeText(
   const model = new OpenAI({
     modelName: "gpt-3.5-turbo-16k",
     temperature: 0,
-    maxTokens: 40,
   });
 
   const languageInfo = getInfoForLanguage(languageCode);

@@ -1,6 +1,7 @@
 import { encoding_for_model } from "tiktoken";
 import { SentenceTokenizer } from "natural";
 import { DEFAULT_AI_MODEL, DEFAULT_MAX_TOKENS_PER_CHUNK } from "./aiConstants";
+import { type FileLogger } from "../logHelper";
 
 export interface Chunk {
   start: number;
@@ -30,6 +31,7 @@ export interface Chunk {
 export function createChunks(
   fileContent: string,
   title: string,
+  logger?: FileLogger,
   maxTokensPerChunk = DEFAULT_MAX_TOKENS_PER_CHUNK,
 ): Chunk[] {
   console.debug("Creating chunks");
@@ -53,12 +55,15 @@ export function createChunks(
     let chunkText = ""; // Text of the current chunk.
     let chunkSentences = 0; // Counter to keep track of the number of sentences in the current chunk.
 
+    let sentencesEnded = false;
+
     // Loop through sentences and add them to the current chunk until reaching the maximum token limit.
-    for (
-      let i = chunkStart;
-      i < sentences.length && tokenCount < maxTokensPerChunk;
-      i++
-    ) {
+    for (let i = chunkStart; tokenCount < maxTokensPerChunk; i++) {
+      if (i >= sentences.length) {
+        sentencesEnded = true;
+        break;
+      }
+
       const sentence = sentences[i]!;
       const tiktokens = tiktoken.encode(sentence); // Encode the sentence to get the number of tokens.
       const sentenceTokenCount = tiktokens.length;
@@ -88,19 +93,18 @@ export function createChunks(
       });
     }
 
-    // Determine how much to stride forward for the next chunk, aiming to have some overlap for context.
-    // The stride is dynamically calculated as one-fifth of the number of sentences in the current chunk.
-    let sentenceStride = Math.floor(chunkSentences / 5);
-    if (sentenceStride === 0) {
-      sentenceStride = 1; // Ensure the stride is at least 1 to prevent infinite loops.
-    }
+    chunkStart += chunkSentences;
 
-    chunkStart += sentenceStride; // Update the start position for the next chunk.
+    if (sentencesEnded) {
+      break;
+    }
   }
 
   if (chunks.length === 0) {
     throw new Error("no chunks created");
   }
+
+  logger?.logToFile("chunks.txt", JSON.stringify(chunks, null, 2));
 
   console.debug("Chunks created", chunks.length);
 

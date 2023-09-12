@@ -6,7 +6,7 @@ import { getInfoForLanguage } from "~/utils/getInfoForLanguage";
 interface SummaryCard {
   summary: Pick<
     Summary,
-    "createdAt" | "language" | "numParagraphs" | "uid" | "fileUid"
+    "createdAt" | "language" | "pageStart" | "pageEnd" | "uid" | "fileUid"
   >;
 }
 
@@ -21,9 +21,13 @@ export const SummaryCard: React.FC<SummaryCard> = ({ summary }) => {
       key={summary.uid}
       className="flex cursor-pointer justify-between gap-4 rounded bg-white p-4 shadow"
     >
-      <span>Summary</span>
       <span>
-        {summary.numParagraphs} Paragraphs -{" "}
+        {" "}
+        {summary.pageStart && summary.pageEnd
+          ? `Pages ${summary.pageStart}-${summary.pageEnd} `
+          : "Summary"}
+      </span>
+      <span>
         {getInfoForLanguage(summary.language)?.language}{" "}
         {getInfoForLanguage(summary.language)?.emoji}
       </span>

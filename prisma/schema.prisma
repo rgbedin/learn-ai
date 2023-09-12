@@ -19,6 +19,7 @@ model File {
   name         String
   type         String
   size         Int
+  numPages     Int?
   text         String?    @db.LongText
   hasProcessed Boolean    @default(false)
   summaries    Summary[]
@@ -53,7 +54,8 @@ model Summary {
   createdAt DateTime @default(now())
   text      String   @db.LongText
   language  String
-  numParagraphs Int
+  pageStart Int?
+  pageEnd   Int?
   file      File     @relation(fields: [fileUid], references: [uid])
   fileUid   String
 

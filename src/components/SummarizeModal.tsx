@@ -11,7 +11,8 @@ interface SummarizeModal {
 
 export const SummarizeModal: React.FC<SummarizeModal> = ({ file, onClose }) => {
   const [language, setLanguage] = useState<string>();
-  const [numParagraphs, setNumParagraphs] = useState<number>();
+  const [pageStart, setPageStart] = useState<number>();
+  const [pageEnd, setPageEnd] = useState<number>();
 
   return (
     <>
@@ -44,18 +45,20 @@ export const SummarizeModal: React.FC<SummarizeModal> = ({ file, onClose }) => {
                   <SummarizeOptions
                     file={file}
                     onCancel={onClose}
-                    onNext={(language, numParagraphs) => {
+                    onNext={(language, pageStart, pageEnd) => {
                       setLanguage(language);
-                      setNumParagraphs(numParagraphs);
+                      setPageStart(pageStart);
+                      setPageEnd(pageEnd);
                     }}
                   />
                 )}
 
-                {language && numParagraphs && (
+                {language && (
                   <SummarizeResult
                     file={file}
                     languageCode={language}
-                    numParagraphs={numParagraphs}
+                    pageStart={pageStart}
+                    pageEnd={pageEnd}
                   />
                 )}
               </section>

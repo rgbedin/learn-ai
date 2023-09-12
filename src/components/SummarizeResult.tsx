@@ -9,13 +9,15 @@ import { useRouter } from "next/router";
 interface SummarizeResult {
   file: File;
   languageCode: string;
-  numParagraphs: number;
+  pageStart?: number;
+  pageEnd?: number;
 }
 
 export const SummarizeResult: React.FC<SummarizeResult> = ({
   file,
   languageCode,
-  numParagraphs,
+  pageStart,
+  pageEnd,
 }) => {
   const [summary, setSummary] = useState<Summary>();
 
@@ -43,13 +45,20 @@ export const SummarizeResult: React.FC<SummarizeResult> = ({
   const ctx = api.useContext();
 
   useEffect(() => {
-    console.debug("Creating summary...", file.key, languageCode, numParagraphs);
+    console.debug(
+      "Creating summary...",
+      file.key,
+      languageCode,
+      pageStart,
+      pageEnd,
+    );
 
     createSummary.mutate(
       {
         key: file.key,
         languageCode,
-        numParagraphs,
+        pageStart,
+        pageEnd,
       },
       {
         onSuccess: (summary) => {
@@ -62,7 +71,7 @@ export const SummarizeResult: React.FC<SummarizeResult> = ({
       },
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [file.key, languageCode, numParagraphs]);
+  }, [file.key, languageCode, pageStart, pageEnd]);
 
   useEffect(() => {
     if (!!summary) {

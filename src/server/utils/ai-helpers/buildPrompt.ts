@@ -1,5 +1,24 @@
-import { encoding_for_model } from "tiktoken";
+import { type TiktokenModel, encoding_for_model } from "tiktoken";
 import { DEFAULT_AI_MODEL, DEFAULT_PROMPT_MAX_TOKENS } from "./aiConstants";
+
+const promptStart =
+  "Answer the question based on the context below.\n\nContext:\n";
+
+export const tokensForQuestion = (question: string, model: TiktokenModel) => {
+  const promptEnd = `\n\nQuestion: ${question}\nAnswer:`;
+
+  const tke = encoding_for_model(model);
+
+  const questionTokens = tke.encode(question);
+
+  const questionTokenCount = questionTokens.length;
+
+  const promptTokens = tke.encode(promptEnd);
+
+  const promptTokenCount = promptTokens.length;
+
+  return questionTokenCount + promptTokenCount;
+};
 
 /**
  * Constructs a prompt string for the OpenAI API based on provided contexts and a question.
@@ -22,13 +41,10 @@ import { DEFAULT_AI_MODEL, DEFAULT_PROMPT_MAX_TOKENS } from "./aiConstants";
 export function buildPrompt(
   contexts: string[],
   question: string,
-  tokenLimit = DEFAULT_PROMPT_MAX_TOKENS,
   model = DEFAULT_AI_MODEL,
+  tokenLimit = DEFAULT_PROMPT_MAX_TOKENS,
 ): string {
   console.debug("Building prompt", { tokenLimit, model });
-
-  const promptStart =
-    "Answer the question based on the context below.\n\nContext:\n";
 
   const promptEnd = `\n\nQuestion: ${question}\nAnswer:`;
 
