@@ -299,6 +299,36 @@ export const fileRouter = createTRPCRouter({
     return files;
   }),
 
+  getRecentSummaries: privateProcedure.query(async ({ ctx }) => {
+    const summaries = await ctx.prisma.summary.findMany({
+      select: {
+        createdAt: true,
+        fileUid: true,
+        language: true,
+        uid: true,
+        file: {
+          select: {
+            name: true,
+          },
+        },
+        pageStart: true,
+        pageEnd: true,
+        type: true,
+      },
+      where: {
+        file: {
+          userId: ctx.userId,
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      take: 5,
+    });
+
+    return summaries;
+  }),
+
   getDownloadUrl: privateProcedure
     .input(z.object({ key: z.string().nonempty() }))
     .query(async ({ input }) => {

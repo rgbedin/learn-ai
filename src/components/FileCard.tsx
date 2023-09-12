@@ -54,6 +54,7 @@ export const FileCard: React.FC<FileCardProps> = ({ file, onClick }) => {
         onSuccess() {
           void ctx.file.getFileByUid.invalidate();
           void ctx.file.getAllUserFiles.invalidate();
+          void ctx.file.getRecentSummaries.invalidate();
           setIsEditing(false);
         },
       },
@@ -65,7 +66,7 @@ export const FileCard: React.FC<FileCardProps> = ({ file, onClick }) => {
       onClick={onClickWrapper}
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
-      className="border-1 border-1 relative flex h-[200px] w-[190px] cursor-pointer flex-col items-center justify-between gap-4 border-gray-200 bg-white px-4 pb-4 pt-6 shadow-md transition hover:shadow-lg"
+      className="relative flex h-[200px] w-[190px] cursor-pointer flex-col items-center justify-between gap-4 border-[1px] border-gray-200 bg-white px-4 pb-4 pt-6 transition hover:translate-y-[-3px]"
     >
       {!isLoading && (
         <FileIcon type={file.type} previewUrl={data?.previewUrl} size="lg" />
@@ -89,15 +90,17 @@ export const FileCard: React.FC<FileCardProps> = ({ file, onClick }) => {
 
       {!isEditing && (
         <div className="flex w-full flex-col">
-          <span className="line-clamp-1">{file.name}</span>
-          <span className="text-gray-500">{humanFileSize(file.size)}</span>
+          <span className="line-clamp-1 text-sm">{file.name}</span>
+          <span className="text-sm text-gray-500">
+            {humanFileSize(file.size)}
+          </span>
         </div>
       )}
 
       {isEditing && (
         <textarea
           autoFocus
-          className="h-20 w-full resize-none rounded-md shadow-sm"
+          className="h-20 w-full resize-none rounded-md text-sm shadow-sm"
           value={newName}
           onChange={(e) => {
             setNewName(e.target.value);

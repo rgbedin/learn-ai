@@ -22,7 +22,7 @@ export const OptionCard: React.FC<OptionCardProps> = ({
 
   return (
     <div
-      className={`flex cursor-pointer items-center gap-1 overflow-hidden rounded-md ${bg} border-2 p-2 ${border} ${bgHover} transition}`}
+      className={`flex cursor-pointer items-center gap-1 overflow-hidden ${bg} border-[1px] p-2 ${border} ${bgHover} transition}`}
       onClick={onClick}
     >
       <Image src={imageUrl} height={125} width={125} alt="File Icon" />

@@ -41,7 +41,7 @@ export const SummaryView: React.FC<SummaryView> = ({ summaryUid }) => {
       )}
 
       {summary && (
-        <div className="whitespace-pre-line rounded-md bg-gray-300 p-2">
+        <div className="whitespace-pre-line rounded-md bg-gray-200 p-2">
           {summary.text}
         </div>
       )}

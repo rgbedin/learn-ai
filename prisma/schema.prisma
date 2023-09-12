@@ -29,7 +29,7 @@ model File {
 model Chat {
   uid       String   @id @default(cuid())
   createdAt DateTime @default(now())
-  file      File     @relation(fields: [fileUid], references: [uid])
+  file      File     @relation(fields: [fileUid], references: [uid], onDelete: Cascade)
   fileUid   String
   firstQuestion String
   history   ChatHistoryEntry[]
@@ -42,7 +42,7 @@ model ChatHistoryEntry {
   createdAt DateTime @default(now())
   question  String   @db.MediumText
   answer    String   @db.LongText
-  chat      Chat     @relation(fields: [chatUid], references: [uid])
+  chat      Chat     @relation(fields: [chatUid], references: [uid], onDelete: Cascade)
   chatUid   String
 
   @@index([chatUid])
@@ -56,7 +56,7 @@ model Summary {
   language  String
   pageStart Int?
   pageEnd   Int?
-  file      File     @relation(fields: [fileUid], references: [uid])
+  file      File     @relation(fields: [fileUid], references: [uid], onDelete: Cascade)
   fileUid   String
 
   @@index([fileUid])
