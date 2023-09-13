@@ -21,7 +21,7 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse,
 ) {
-  console.debug("stripe-webhook.ts handler", req.method);
+  console.info("stripe-webhook.ts handler", req.method);
 
   if (req.method === "POST") {
     const buf = await buffer(req);
