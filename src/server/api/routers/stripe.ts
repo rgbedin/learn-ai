@@ -81,6 +81,9 @@ export const handleInvoicePaid = async ({
     data: {
       stripeSubscriptionId: subscription.id,
       stripeSubscriptionStatus: subscription.status,
+      stripeSubscriptionPaidUntil: subscription.status.includes("incomplete")
+        ? undefined
+        : new Date(subscription.current_period_end * 1000),
     },
   });
 };
@@ -102,6 +105,9 @@ export const handleSubscriptionUpdated = async ({
     data: {
       stripeSubscriptionId: subscription.id,
       stripeSubscriptionStatus: subscription.status,
+      stripeSubscriptionPaidUntil: subscription.status.includes("incomplete")
+        ? undefined
+        : new Date(subscription.current_period_end * 1000),
     },
   });
 };

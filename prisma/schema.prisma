@@ -15,7 +15,7 @@ model User {
   id                            String   @id
   stripeSubscriptionId          String?
   stripeSubscriptionStatus      String?
-  stripeSubscriptionPaidUnitl   DateTime?
+  stripeSubscriptionPaidUntil   DateTime?
   stripeCustomerId              String?
 }
 

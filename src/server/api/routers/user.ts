@@ -4,6 +4,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 // eslint-disable-file @typescript-eslint/no-unsafe-member-access
+import dayjs from "dayjs";
 import { createTRPCRouter, privateProcedure } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
 
@@ -15,6 +16,7 @@ export const userRouter = createTRPCRouter({
       },
       select: {
         stripeSubscriptionStatus: true,
+        stripeSubscriptionPaidUntil: true,
       },
     });
 
@@ -26,6 +28,13 @@ export const userRouter = createTRPCRouter({
       });
     }
 
-    return user.stripeSubscriptionStatus;
+    return {
+      status: user.stripeSubscriptionStatus,
+      paidUntil: user.stripeSubscriptionPaidUntil,
+      isValid:
+        user.stripeSubscriptionPaidUntil &&
+        dayjs(user.stripeSubscriptionPaidUntil).isAfter(new Date()) &&
+        user.stripeSubscriptionStatus !== "canceled",
+    };
   }),
 });
