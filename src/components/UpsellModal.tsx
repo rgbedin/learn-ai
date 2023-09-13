@@ -1,41 +1,12 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
 /* eslint-disable react/no-unescaped-entities */
-import { api } from "~/utils/api";
 import { PlanCard } from "./PlanCard";
-import toast from "react-hot-toast";
-import getStripe from "~/utils/getStripe";
 
 interface UpsellModalProps {
   onClose: () => void;
 }
 
 export const UpsellModal: React.FC<UpsellModalProps> = ({ onClose }) => {
-  const getCheckoutUrl = api.stripe.generateCheckoutUrl.useMutation();
-
-  const onClick = (plan: "SUBS_MONTHLY" | "SUBS_YEARLY") => {
-    getCheckoutUrl.mutate(
-      {
-        product: plan,
-        origin: window.location.origin,
-      },
-      {
-        onSuccess: async (data) => {
-          const stripe = await getStripe();
-          const { error } = await stripe!.redirectToCheckout({
-            sessionId: data.id,
-          });
-
-          if (error) {
-            toast.error(error.message ?? "An error occurred");
-          }
-        },
-        onError(err) {
-          toast.error(err.message);
-        },
-      },
-    );
-  };
-
   return (
     <>
       <div
@@ -75,8 +46,7 @@ export const UpsellModal: React.FC<UpsellModalProps> = ({ onClose }) => {
                         "Upload PDF files only",
                         "Summarize up to 5 pages",
                       ]}
-                      price={0}
-                      recurring="month"
+                      product="FREE"
                       featuresDisabled={[
                         "Upload image and audio files",
                         "Get audio file transcripts",
@@ -98,12 +68,8 @@ export const UpsellModal: React.FC<UpsellModalProps> = ({ onClose }) => {
                       "Create unlimited outlines and explanations",
                       "Get extra coins for $0.10",
                     ]}
-                    price={4.9}
-                    recurring="month"
+                    product="SUBS_MONTHLY"
                     featuresDisabled={["Cheapest plan/month"]}
-                    onSelect={() => {
-                      onClick("SUBS_MONTHLY");
-                    }}
                   />
 
                   <PlanCard
@@ -118,12 +84,8 @@ export const UpsellModal: React.FC<UpsellModalProps> = ({ onClose }) => {
                       "Get extra coins for $0.10",
                       "Cheapest plan/month",
                     ]}
-                    price={49}
+                    product="SUBS_YEARLY"
                     discountCallout="SAVE 15%"
-                    recurring="year"
-                    onSelect={() => {
-                      onClick("SUBS_YEARLY");
-                    }}
                   />
                 </div>
               </section>

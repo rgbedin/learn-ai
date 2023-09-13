@@ -8,6 +8,8 @@ import CoinsCard from "~/components/CoinsCard";
 export default function Home() {
   const { data: recentSummaries } = api.file.getRecentSummaries.useQuery();
 
+  api.user.getSubscriptionStatus.useQuery();
+
   return (
     <PageBase>
       <div className="flex flex-col gap-8">

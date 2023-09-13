@@ -36,7 +36,6 @@ export const createTRPCContext = (opts: CreateNextContextOptions) => {
   return {
     prisma,
     userId,
-    user: sesh.user,
   };
 };
 
@@ -95,7 +94,6 @@ const enforceUserIsAuthed = t.middleware(async ({ ctx, next }) => {
   return next({
     ctx: {
       userId: ctx.userId,
-      user: ctx.user,
     },
   });
 });

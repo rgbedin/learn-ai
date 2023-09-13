@@ -9,7 +9,7 @@ import { z } from "zod";
 import { Stripe } from "stripe";
 import { createTRPCRouter, privateProcedure } from "~/server/api/trpc";
 import { type PrismaClient } from "@prisma/client";
-import { type User } from "@clerk/backend";
+import { clerkClient } from "@clerk/nextjs";
 
 export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2023-08-16",
@@ -18,12 +18,14 @@ export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 export const getOrCreateStripeCustomerIdForUser = async ({
   stripe,
   prisma,
-  user,
+  userId,
 }: {
   stripe: Stripe;
   prisma: PrismaClient;
-  user: User;
+  userId: string;
 }) => {
+  const user = await clerkClient.users.getUser(userId);
+
   const ourUser = await prisma.user.findUnique({
     where: {
       id: user.id,
@@ -105,6 +107,35 @@ export const handleSubscriptionUpdated = async ({
 };
 
 export const stripeRouter = createTRPCRouter({
+  getSubscriptionPrice: privateProcedure
+    .input(
+      z.object({
+        product: z.enum(["SUBS_MONTHLY", "SUBS_YEARLY"]),
+      }),
+    )
+    .query(async ({ input }) => {
+      const prices = await stripe.prices.list({
+        active: true,
+      });
+
+      const thePrice = prices.data.find((price) => {
+        if (price.recurring?.interval === "month") {
+          return input.product === "SUBS_MONTHLY";
+        } else if (price.recurring?.interval === "year") {
+          return input.product === "SUBS_YEARLY";
+        }
+      });
+
+      if (!thePrice) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "No price found",
+        });
+      }
+
+      return thePrice.unit_amount;
+    }),
+
   generateCheckoutUrl: privateProcedure
     .input(
       z.object({
@@ -116,7 +147,7 @@ export const stripeRouter = createTRPCRouter({
       const customerId = await getOrCreateStripeCustomerIdForUser({
         prisma: ctx.prisma,
         stripe,
-        user: ctx.user!,
+        userId: ctx.userId,
       });
 
       const prices = await stripe.prices.list({
@@ -152,8 +183,8 @@ export const stripeRouter = createTRPCRouter({
         metadata: { userId: ctx.userId },
         allow_promotion_codes: true,
         customer: customerId,
-        success_url: `${input.origin}/payment?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${input.origin}/result?session_id={CHECKOUT_SESSION_ID}`,
+        success_url: input.origin,
+        cancel_url: input.origin,
       };
 
       const session = await stripe.checkout.sessions.create(params);
@@ -171,7 +202,7 @@ export const stripeRouter = createTRPCRouter({
       const customerId = await getOrCreateStripeCustomerIdForUser({
         prisma: ctx.prisma,
         stripe,
-        user: ctx.user!,
+        userId: ctx.userId,
       });
 
       const stripeBillingPortalSession =
