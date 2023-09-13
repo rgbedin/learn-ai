@@ -1,11 +1,41 @@
+/* eslint-disable @typescript-eslint/no-misused-promises */
 /* eslint-disable react/no-unescaped-entities */
+import { api } from "~/utils/api";
 import { PlanCard } from "./PlanCard";
+import toast from "react-hot-toast";
+import getStripe from "~/utils/getStripe";
 
 interface UpsellModalProps {
   onClose: () => void;
 }
 
 export const UpsellModal: React.FC<UpsellModalProps> = ({ onClose }) => {
+  const getCheckoutUrl = api.stripe.generateCheckoutUrl.useMutation();
+
+  const onClick = (plan: "SUBS_MONTHLY" | "SUBS_YEARLY") => {
+    getCheckoutUrl.mutate(
+      {
+        product: plan,
+        origin: window.location.origin,
+      },
+      {
+        onSuccess: async (data) => {
+          const stripe = await getStripe();
+          const { error } = await stripe!.redirectToCheckout({
+            sessionId: data.id,
+          });
+
+          if (error) {
+            toast.error(error.message ?? "An error occurred");
+          }
+        },
+        onError(err) {
+          toast.error(err.message);
+        },
+      },
+    );
+  };
+
   return (
     <>
       <div
@@ -72,7 +102,7 @@ export const UpsellModal: React.FC<UpsellModalProps> = ({ onClose }) => {
                     recurring="month"
                     featuresDisabled={["Cheapest plan/month"]}
                     onSelect={() => {
-                      console.debug("TODO: subscribe to monthly plan");
+                      onClick("SUBS_MONTHLY");
                     }}
                   />
 
@@ -92,7 +122,7 @@ export const UpsellModal: React.FC<UpsellModalProps> = ({ onClose }) => {
                     discountCallout="SAVE 15%"
                     recurring="year"
                     onSelect={() => {
-                      console.debug("TODO: subscribe to monthly plan");
+                      onClick("SUBS_YEARLY");
                     }}
                   />
                 </div>
