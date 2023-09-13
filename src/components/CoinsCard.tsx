@@ -12,7 +12,7 @@ export default function CoinsCard() {
     <>
       <div className="flex gap-1 bg-orange-100 p-2">
         <GiTwoCoins size={22} />
-        <span className="text-sm">You have</span>
+        <span className="hidden text-sm lg:flex">You have</span>
         <span className="text-sm font-semibold">{coins}</span>
         <span className="text-sm">coins remaining</span>
         <span

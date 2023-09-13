@@ -95,7 +95,7 @@ export const FilePage: NextPage<{ uid: string }> = ({ uid }) => {
   return (
     <>
       <PageBase showGoBack>
-        <div className="grid flex-1 grid-cols-2 gap-2">
+        <div className="grid flex-1 grid-cols-1 gap-2 lg:grid-cols-2">
           {documentViewer}
 
           <div className="flex flex-col gap-2">
