@@ -10,6 +10,8 @@ import { prisma } from "~/server/db";
 
 export const userRouter = createTRPCRouter({
   getSubscriptionStatus: privateProcedure.query(async ({ ctx }) => {
+    console.info("userRouter.getSubscriptionStatus", ctx.userId);
+
     let user = await prisma.user.findUnique({
       where: {
         id: ctx.userId,
