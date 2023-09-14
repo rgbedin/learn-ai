@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { NextApiRequest, NextApiResponse } from "next";
 import { prisma } from "~/server/db";
 import type Stripe from "stripe";
@@ -7,6 +8,11 @@ import {
   handleSubscriptionUpdated,
   stripe,
 } from "~/server/api/routers/stripe";
+import Cors from "micro-cors";
+
+const cors = Cors({
+  allowMethods: ["POST", "HEAD"],
+});
 
 // Stripe requires the raw body to construct the event.
 export const config = {
@@ -17,10 +23,7 @@ export const config = {
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse,
-) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
   console.info("stripe-webhook.ts handler", req.method);
 
   if (req.method === "POST") {
@@ -80,3 +83,6 @@ export default async function handler(
     res.status(405).end("Method Not Allowed");
   }
 }
+
+// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+export default cors(handler as any);
