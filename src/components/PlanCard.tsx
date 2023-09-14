@@ -24,7 +24,7 @@ export const PlanCard: React.FC<PlanCardProps> = ({
   featuresDisabled,
 }) => {
   const [isLoadingUrl, setIsLoadingUrl] = useState(false);
-  const { data: price } = api.stripe.getSubscriptionPrice.useQuery(
+  const { data: price } = api.stripe.getProductPrice.useQuery(
     {
       product: product as any,
     },

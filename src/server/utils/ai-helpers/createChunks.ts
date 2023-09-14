@@ -33,6 +33,7 @@ export function createChunks(
   title: string,
   logger?: FileLogger,
   maxTokensPerChunk = DEFAULT_MAX_TOKENS_PER_CHUNK,
+  model = DEFAULT_AI_MODEL,
 ): Chunk[] {
   console.debug("Creating chunks");
 
@@ -45,7 +46,7 @@ export function createChunks(
 
   // Initialize tiktoken for the specified embedding model.
   // This helps calculate the number of tokens in each sentence.
-  const tiktoken = encoding_for_model(DEFAULT_AI_MODEL);
+  const tiktoken = encoding_for_model(model.model);
 
   let chunkStart = 0; // Start of the current chunk in the list of sentences.
 

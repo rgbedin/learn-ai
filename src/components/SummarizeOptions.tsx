@@ -4,7 +4,7 @@ import { type SummaryType, type File } from "@prisma/client";
 import { useEffect, useMemo, useState } from "react";
 import Languages from "~/assets/languages.json";
 import { getCostBySummaryTypeAndPages } from "~/utils/costs";
-import CoinsDisplay from "./CoinsDisplay";
+import CostDisplay from "./CostDisplay";
 
 interface SummarizeOptions {
   file: File;
@@ -34,9 +34,18 @@ export const SummarizeOptions: React.FC<SummarizeOptions> = ({
 
   const canProceed = useMemo(() => {
     if (canSelectPages)
-      return !!language && !!pageStart && !!pageEnd && pageStart <= pageEnd;
+      return (
+        !!language &&
+        !!pageStart &&
+        !!pageEnd &&
+        pageStart <= pageEnd &&
+        pageStart > 0 &&
+        pageStart <= (file.numPages ?? 1) &&
+        pageEnd > 0 &&
+        pageEnd <= (file.numPages ?? 1)
+      );
     return !!language;
-  }, [canSelectPages, language, pageStart, pageEnd]);
+  }, [canSelectPages, language, pageStart, pageEnd, file.numPages]);
 
   const isNumPagesHigh = useMemo(
     () => !!pageStart && !!pageEnd && pageEnd - pageStart > 24,
@@ -153,8 +162,8 @@ export const SummarizeOptions: React.FC<SummarizeOptions> = ({
         )}
       </div>
 
-      {costCoins && (
-        <CoinsDisplay
+      {!!costCoins && !!canProceed && (
+        <CostDisplay
           amount={costCoins}
           label={`Generating this ${label} will cost`}
           tooltip="Document generation requires us to communicate with an AI provider"

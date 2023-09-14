@@ -1,4 +1,4 @@
-import React, { type CSSProperties, useEffect, useMemo } from "react";
+import React, { type CSSProperties, useMemo, useRef } from "react";
 import axios from "axios";
 import { useState } from "react";
 import { api } from "~/utils/api";
@@ -10,7 +10,7 @@ import { GrFormClose } from "react-icons/gr";
 import { BiUpload } from "react-icons/bi";
 import { FeaturesCarousel } from "./FeaturesCarousel";
 import { getCostUploadByFileType } from "~/utils/costs";
-import CoinsDisplay from "./CoinsDisplay";
+import CostDisplay from "./CostDisplay";
 
 const dropzoneBaseStyle: CSSProperties = {
   flex: 1,
@@ -34,10 +34,11 @@ interface UploadModalProps {
 
 export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
   const [file, setFile] = useState<File>();
+  const [audioDuration, setAudioDuration] = useState<number>();
   const [uploadProgress, setUploadProgress] = useState<number>(0);
-  const [hasEnoughCoins, setHasEnoughCoins] = useState<boolean>(true);
+  const [hasEnoughCoins, setHasEnoughCoins] = useState<boolean>();
 
-  const { acceptedFiles, getRootProps, getInputProps, inputRef } = useDropzone({
+  const { getRootProps, getInputProps, inputRef } = useDropzone({
     accept: {
       "image/*": ["png", "jpg", "jpeg"],
       "audio/*": ["mp3", "m4a", "wav"],
@@ -51,6 +52,15 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
     onError(err) {
       toast.error(err.message);
     },
+    onDrop(acceptedFiles) {
+      setFile(undefined);
+
+      setTimeout(() => {
+        if (acceptedFiles.length > 0) {
+          setFile(acceptedFiles[0]);
+        }
+      }, 0);
+    },
   });
 
   const dropzoneStyle = useMemo(
@@ -59,12 +69,6 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
     }),
     [],
   );
-
-  useEffect(() => {
-    if (acceptedFiles.length > 0) {
-      setFile(acceptedFiles[0]);
-    }
-  }, [acceptedFiles]);
 
   const createUploadUrl = api.file.createUploadUrl.useMutation();
   const onAfterUpload = api.file.onAfterUpload.useMutation();
@@ -77,16 +81,30 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
 
   const costForFile = useMemo(() => {
     if (!file) return undefined;
-    return getCostUploadByFileType(file.type);
-  }, [file]);
+
+    if (file.type.includes("audio") && !audioDuration) return undefined;
+
+    return getCostUploadByFileType(
+      file.type,
+      audioDuration ? { audioDurationInSeconds: audioDuration } : undefined,
+    );
+  }, [audioDuration, file]);
 
   const clearFile = () => {
     inputRef.current?.value && (inputRef.current.value = "");
+    setAudioDuration(undefined);
     setFile(undefined);
   };
 
   const onUpload = async () => {
     if (!file) return;
+
+    if (file.type.includes("audio") && !audioDuration) {
+      toast.error(
+        "Processing audio file. Please wait a few seconds and try again.",
+      );
+      return;
+    }
 
     setUploadProgress(0);
 
@@ -119,7 +137,15 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
       );
 
       void onAfterUpload.mutateAsync(
-        { key, name: file.name, type: file.type, size: file.size },
+        {
+          key,
+          name: file.name,
+          type: file.type,
+          size: file.size,
+          options: {
+            audioDurationInSeconds: audioDuration,
+          },
+        },
         {
           onSuccess: () => {
             void ctx.file.getAllUserFiles.invalidate();
@@ -133,6 +159,14 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
       toast.error(
         `An error occurred when trying to upload the file. Please try again.`,
       );
+    }
+  };
+
+  const audioRef = useRef<HTMLAudioElement>(null);
+
+  const onLoadedAudio = () => {
+    if (audioRef.current) {
+      setAudioDuration(audioRef.current.duration);
     }
   };
 
@@ -225,12 +259,22 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
                   </div>
                 )}
 
+                {file && file.type.includes("audio") && (
+                  <audio ref={audioRef} hidden onLoadedMetadata={onLoadedAudio}>
+                    <source src={URL.createObjectURL(file)} />
+                  </audio>
+                )}
+
                 {!!costForFile && (
                   <div className="mt-4">
-                    <CoinsDisplay
+                    <CostDisplay
                       amount={costForFile}
-                      label="This file will cost"
-                      tooltip="Image and audio files require extra processing and will cost more to upload."
+                      label={
+                        file?.type.includes("audio")
+                          ? "Transcribing the audio file will cost"
+                          : "Analyzing the image will cost"
+                      }
+                      tooltip="You will get the transcription right after the upload is complete!"
                       onHasEnoughCoins={setHasEnoughCoins}
                     />
                   </div>
@@ -250,7 +294,9 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
 
               {!hasFinishedUpload && (
                 <button
-                  disabled={!file || hasStartedUpload || !hasEnoughCoins}
+                  disabled={
+                    !file || hasStartedUpload || hasEnoughCoins !== true
+                  }
                   className="mb-1 mr-1 rounded bg-[#003049] px-6 py-3 text-sm font-bold uppercase text-white shadow outline-none transition-all duration-150 ease-linear hover:shadow-lg focus:outline-none active:bg-[#003049] disabled:cursor-not-allowed disabled:opacity-50"
                   type="button"
                   onClick={() => void onUpload()}

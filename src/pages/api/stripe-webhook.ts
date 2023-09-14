@@ -5,6 +5,7 @@ import type Stripe from "stripe";
 import { buffer } from "micro";
 import {
   handleInvoicePaid,
+  handleStripeCheckoutSessionCompleted,
   handleSubscriptionUpdated,
   stripe,
 } from "~/server/api/routers/stripe";
@@ -48,7 +49,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           });
           break;
         case "customer.subscription.updated":
-          // Used to provision services as they are updated.
           await handleSubscriptionUpdated({
             event,
             prisma,
@@ -63,6 +63,13 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           break;
         case "customer.subscription.deleted":
           await handleSubscriptionUpdated({
+            event,
+            prisma,
+          });
+          break;
+        case "checkout.session.async_payment_succeeded":
+        case "checkout.session.completed":
+          await handleStripeCheckoutSessionCompleted({
             event,
             prisma,
           });

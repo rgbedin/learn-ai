@@ -13,17 +13,14 @@ import { type Chunk, createChunks } from "./ai-helpers/createChunks";
 import { runKmeans } from "./ai-helpers/runKmeans";
 import { callOpenAi } from "./ai-helpers/callOpenAi";
 import {
+  BATCH_SIZE_FOR_EMBEDDINGS,
+  CHUNKS_PER_BUCKET,
   DEFAULT_AI_MODEL,
   DEFAULT_EMBEDDING_MODEL_PRICE_PER_1000,
+  NUM_REPRESENTATIVES_CHUNKS_PER_BUCKET,
 } from "./ai-helpers/aiConstants";
 import { FileLogger } from "./logHelper";
 import { getModelThatFits } from "./ai-helpers/getModelThatFits";
-
-const BATCH_SIZE_FOR_EMBEDDINGS = 250;
-
-const NUM_REPRESENTATIVES_CHUNKS_PER_BUCKET = 3;
-
-const CHUNKS_PER_BUCKET = 15;
 
 const getSummarizePrompt = (languageCode: string) => {
   const language = getInfoForLanguage(languageCode);
@@ -89,7 +86,7 @@ export async function summarizeText(
 
   if (model) {
     console.debug("Found model that fits text", model);
-    const prompt = buildPrompt([text], question, model.model, model.maxTokens);
+    const prompt = buildPrompt([text], question, model);
     logger.logToFile("single-prompt.txt", prompt);
 
     const openAIResponse = await callOpenAi(prompt, logger, model);
@@ -309,7 +306,7 @@ export async function promptText(
   // Create the conversational interface
   const convInterface = ConversationalRetrievalQAChain.fromLLM(
     new ChatOpenAI({
-      modelName: DEFAULT_AI_MODEL,
+      modelName: DEFAULT_AI_MODEL.model,
       temperature: 0,
     }),
     retriever,

@@ -34,7 +34,7 @@ export const FeaturesCarousel: React.FC = () => {
 
       <FeaturesCard
         imageUrl="https://public-learn-ai-m93.s3.amazonaws.com/img-3.png"
-        title="Do you have a recorded audio file? We support that too!"
+        title="Audio file? We will transcribe and process that too!"
       />
     </div>
   );

@@ -88,6 +88,44 @@ export const handleInvoicePaid = async ({
   });
 };
 
+export const handleStripeCheckoutSessionCompleted = async ({
+  event,
+  prisma,
+}: {
+  event: Stripe.Event;
+  prisma: PrismaClient;
+}) => {
+  const session = event.data.object as Stripe.Checkout.Session;
+  const userId = session.metadata?.userId;
+
+  const lineItemsResp = await stripe.checkout.sessions.listLineItems(
+    session.id,
+  );
+
+  const lineItems = lineItemsResp.data;
+
+  for (const li of lineItems) {
+    const product = li.price?.product as Stripe.Product;
+
+    if (product.id === process.env.STRIPE_COIN_PRODUCT_ID) {
+      const quantity = li.quantity ?? 1;
+
+      await prisma.coins.update({
+        where: {
+          userId: userId!,
+        },
+        data: {
+          coins: {
+            increment: quantity,
+          },
+        },
+      });
+    } else {
+      throw new Error("Unknown product");
+    }
+  }
+};
+
 export const handleSubscriptionUpdated = async ({
   event,
   prisma,
@@ -113,10 +151,10 @@ export const handleSubscriptionUpdated = async ({
 };
 
 export const stripeRouter = createTRPCRouter({
-  getSubscriptionPrice: privateProcedure
+  getProductPrice: privateProcedure
     .input(
       z.object({
-        product: z.enum(["SUBS_MONTHLY", "SUBS_YEARLY"]),
+        product: z.enum(["SUBS_MONTHLY", "SUBS_YEARLY", "COIN"]),
       }),
     )
     .query(async ({ input }) => {
@@ -129,6 +167,8 @@ export const stripeRouter = createTRPCRouter({
           return input.product === "SUBS_MONTHLY";
         } else if (price.recurring?.interval === "year") {
           return input.product === "SUBS_YEARLY";
+        } else if (price.product === process.env.STRIPE_COIN_PRODUCT_ID) {
+          return input.product === "COIN";
         }
       });
 
@@ -145,7 +185,8 @@ export const stripeRouter = createTRPCRouter({
   generateCheckoutUrl: privateProcedure
     .input(
       z.object({
-        product: z.enum(["SUBS_MONTHLY", "SUBS_YEARLY"]),
+        product: z.enum(["SUBS_MONTHLY", "SUBS_YEARLY", "COIN"]),
+        amount: z.number().optional(),
         origin: z.string(),
       }),
     )
@@ -156,46 +197,85 @@ export const stripeRouter = createTRPCRouter({
         userId: ctx.userId,
       });
 
-      const prices = await stripe.prices.list({
-        product: process.env.STRIPE_SUBSCRIPTION_PRODUCT_ID!,
-        expand: ["data.product"],
-      });
-
-      const thePrice = prices.data.find((price) => {
-        if (input.product === "SUBS_MONTHLY") {
-          return price.recurring?.interval === "month" && price.active;
-        } else if (input.product === "SUBS_YEARLY") {
-          return price.recurring?.interval === "year" && price.active;
-        }
-      });
-
-      if (!thePrice) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "No price found",
+      if (input.product === "COIN") {
+        const prices = await stripe.prices.list({
+          product: process.env.STRIPE_COIN_PRODUCT_ID!,
+          expand: ["data.product"],
         });
+
+        const thePrice = prices.data.find((price) => {
+          return price.active;
+        });
+
+        if (!thePrice) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "No price found",
+          });
+        }
+
+        const params: Stripe.Checkout.SessionCreateParams = {
+          payment_intent_data: { metadata: { userId: ctx.userId } },
+          billing_address_collection: "auto",
+          mode: "payment",
+          line_items: [
+            {
+              price: thePrice.id,
+              quantity: input.amount ?? 1,
+            },
+          ],
+          metadata: { userId: ctx.userId },
+          allow_promotion_codes: true,
+          customer: customerId,
+          success_url: input.origin,
+          cancel_url: input.origin,
+        };
+
+        const session = await stripe.checkout.sessions.create(params);
+
+        return session;
+      } else {
+        const prices = await stripe.prices.list({
+          product: process.env.STRIPE_SUBSCRIPTION_PRODUCT_ID!,
+          expand: ["data.product"],
+        });
+
+        const thePrice = prices.data.find((price) => {
+          if (input.product === "SUBS_MONTHLY") {
+            return price.recurring?.interval === "month" && price.active;
+          } else if (input.product === "SUBS_YEARLY") {
+            return price.recurring?.interval === "year" && price.active;
+          }
+        });
+
+        if (!thePrice) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "No price found",
+          });
+        }
+
+        const params: Stripe.Checkout.SessionCreateParams = {
+          subscription_data: { metadata: { userId: ctx.userId } },
+          billing_address_collection: "auto",
+          mode: "subscription",
+          line_items: [
+            {
+              price: thePrice.id,
+              quantity: 1,
+            },
+          ],
+          metadata: { userId: ctx.userId },
+          allow_promotion_codes: true,
+          customer: customerId,
+          success_url: input.origin,
+          cancel_url: input.origin,
+        };
+
+        const session = await stripe.checkout.sessions.create(params);
+
+        return session;
       }
-
-      const params: Stripe.Checkout.SessionCreateParams = {
-        subscription_data: { metadata: { userId: ctx.userId } },
-        billing_address_collection: "auto",
-        mode: "subscription",
-        line_items: [
-          {
-            price: thePrice.id,
-            quantity: 1,
-          },
-        ],
-        metadata: { userId: ctx.userId },
-        allow_promotion_codes: true,
-        customer: customerId,
-        success_url: input.origin,
-        cancel_url: input.origin,
-      };
-
-      const session = await stripe.checkout.sessions.create(params);
-
-      return session;
     }),
 
   generateBillingPortalUrl: privateProcedure

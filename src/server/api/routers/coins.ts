@@ -109,6 +109,10 @@ export const coinsRouter = createTRPCRouter({
 
     coins = await giveMonthlyRefillIfNeeded(ctx.userId);
 
-    return coins.coins;
+    const nextRefill = coins.lastMonthlyRefill
+      ? dayjs(coins.lastMonthlyRefill).add(1, "month").toDate()
+      : undefined;
+
+    return { coins: coins.coins, nextRefill };
   }),
 });

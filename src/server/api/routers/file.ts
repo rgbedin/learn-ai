@@ -218,10 +218,23 @@ export const fileRouter = createTRPCRouter({
         name: z.string().nonempty(),
         type: z.string().nonempty(),
         size: z.number().int().positive(),
+        options: z.object({
+          audioDurationInSeconds: z.number().int().positive().optional(),
+        }),
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const cost = getCostUploadByFileType(input.type);
+      let cost = 0;
+
+      try {
+        cost = getCostUploadByFileType(input.type, input.options);
+      } catch (e) {
+        console.error(e);
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Could not compute cost",
+        });
+      }
 
       await ensureUserHasCoins(ctx.userId, cost);
 

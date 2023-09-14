@@ -2,6 +2,7 @@ import { useEffect, useMemo } from "react";
 import { AiOutlineQuestionCircle } from "react-icons/ai";
 import { GiTwoCoins } from "react-icons/gi";
 import { api } from "~/utils/api";
+import IncreaseCoins from "./IncreaseCoins";
 
 interface CoinsDisplayProps {
   amount: number;
@@ -11,14 +12,16 @@ interface CoinsDisplayProps {
   onHasEnoughCoins: (hasEnough: boolean) => void;
 }
 
-export default function CoinsDisplay({
+export default function CostDisplay({
   amount,
   label,
   tooltip,
   onHasEnoughCoins,
-  notEnoughCoinsMessage = "You do not have enough coins",
+  notEnoughCoinsMessage = "You do not have",
 }: CoinsDisplayProps) {
-  const { data: coins } = api.coins.getMyCoins.useQuery();
+  const { data: c } = api.coins.getMyCoins.useQuery();
+
+  const coins = useMemo(() => c?.coins, [c]);
 
   const hasEnoughCoins = useMemo(() => {
     if (!coins) return undefined;
@@ -57,6 +60,8 @@ export default function CoinsDisplay({
           </span>
         </div>
       )}
+
+      {hasEnoughCoins === false && <IncreaseCoins />}
     </div>
   );
 }

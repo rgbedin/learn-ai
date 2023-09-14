@@ -1,5 +1,5 @@
 import { type TiktokenModel, encoding_for_model } from "tiktoken";
-import { DEFAULT_AI_MODEL, DEFAULT_PROMPT_MAX_TOKENS } from "./aiConstants";
+import { DEFAULT_AI_MODEL } from "./aiConstants";
 
 const promptStart =
   "Answer the question based on the context below.\n\nContext:\n";
@@ -42,13 +42,12 @@ export function buildPrompt(
   contexts: string[],
   question: string,
   model = DEFAULT_AI_MODEL,
-  tokenLimit = DEFAULT_PROMPT_MAX_TOKENS,
 ): string {
-  console.debug("Building prompt", { tokenLimit, model });
+  console.debug("Building prompt", { model });
 
   const promptEnd = `\n\nQuestion: ${question}\nAnswer:`;
 
-  const tke = encoding_for_model(model);
+  const tke = encoding_for_model(model.model);
 
   const questionTokens = tke.encode(question);
 
@@ -62,7 +61,7 @@ export function buildPrompt(
     currentTokenCount += contextTokens.length;
 
     // If adding this context exceeds the token limit, construct the prompt with the contexts that fit and break the loop.
-    if (currentTokenCount >= tokenLimit) {
+    if (currentTokenCount >= model.maxTokens) {
       prompt =
         promptStart + contexts.slice(0, i).join("\n\n---\n\n") + promptEnd;
 
