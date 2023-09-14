@@ -80,10 +80,10 @@ export const UpsellModal: React.FC<UpsellModalProps> = ({ onClose }) => {
                     product="FREE"
                     featuresDisabled={[
                       "Upload image and audio files",
-                      "Get audio file transcripts",
-                      "Get handwritten notes text",
+                      "Audio file transcripts",
+                      "Detect handwritten notes text",
                       "Summarize unlimited pages",
-                      "Create unlimited outlines and explanations",
+                      "No more coins",
                     ]}
                   />
 
@@ -93,8 +93,8 @@ export const UpsellModal: React.FC<UpsellModalProps> = ({ onClose }) => {
                       featuresEnabled={[
                         `${COINS_PER_MONTH} coins per month`,
                         "Upload files up to 50MB",
-                        "Get audio file transcripts",
-                        "Get handwritten notes' text",
+                        "Audio file transcripts",
+                        "Detect handwritten notes' text",
                         "30+ languages supported",
                         "Get extra coins for $0.10",
                       ]}
@@ -109,14 +109,14 @@ export const UpsellModal: React.FC<UpsellModalProps> = ({ onClose }) => {
                       featuresEnabled={[
                         `${COINS_PER_MONTH} coins per month`,
                         "Upload files up to 50MB",
-                        "Get audio file transcripts",
-                        "Get handwritten notes' text",
+                        "Audio file transcripts",
+                        "Detect handwritten notes' text",
                         "30+ languages supported",
                         "Get extra coins for $0.10",
                         "Cheapest plan/month",
                       ]}
                       product="SUBS_YEARLY"
-                      discountCallout="SAVE 15%"
+                      discountCallout="SAVE 20%"
                     />
                   )}
                 </div>
