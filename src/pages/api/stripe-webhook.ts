@@ -24,8 +24,6 @@ export const config = {
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
-  console.info("stripe-webhook.ts handler", req.method);
-
   if (req.method === "POST") {
     const buf = await buffer(req);
     const sig = req.headers["stripe-signature"];
