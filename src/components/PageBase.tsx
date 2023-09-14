@@ -1,10 +1,11 @@
 import { UserButton, useUser } from "@clerk/nextjs";
 import Link from "next/link";
-import { type PropsWithChildren } from "react";
+import { useMemo, type PropsWithChildren } from "react";
 import { Inter } from "next/font/google";
-import { BiArrowBack, BiSolidUserCircle } from "react-icons/bi";
+import { BiArrowBack, BiSolidCrown, BiSolidUserCircle } from "react-icons/bi";
 import { useRouter } from "next/router";
 import CoinsCounter from "./CoinsCounter";
+import { api } from "~/utils/api";
 
 const theFont = Inter({ subsets: ["latin"] });
 
@@ -14,6 +15,10 @@ interface PageBaseProps extends PropsWithChildren {
 
 export const PageBase: React.FC<PageBaseProps> = ({ children, showGoBack }) => {
   const { user } = useUser();
+
+  const { data: subsData } = api.user.getSubscriptionStatus.useQuery();
+
+  const isValid = useMemo(() => subsData?.isValid, [subsData]);
 
   const router = useRouter();
 
@@ -28,6 +33,14 @@ export const PageBase: React.FC<PageBaseProps> = ({ children, showGoBack }) => {
 
           <div className="flex items-center gap-5">
             <CoinsCounter />
+
+            {isValid && (
+              <div className="flex items-center gap-1 rounded-md bg-orange-100 p-1 ">
+                <BiSolidCrown size={17} />
+                <span className="text-xs uppercase">Premium</span>
+              </div>
+            )}
+
             <UserButton />
           </div>
         </div>
