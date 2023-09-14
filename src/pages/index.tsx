@@ -4,11 +4,15 @@ import FileExplorer from "~/components/FileExplorer";
 import RecentSummaries from "~/components/RecentSummaries";
 import { api } from "~/utils/api";
 import CoinsCard from "~/components/CoinsCard";
+import SupportCard from "~/components/SupportCard";
+import { useIsMobile } from "~/hooks/useIsMobile";
 
 export default function Home() {
   const { data: recentSummaries } = api.file.getRecentSummaries.useQuery();
 
   api.user.getSubscriptionStatus.useQuery();
+
+  const isMobile = useIsMobile();
 
   return (
     <PageBase>
@@ -36,6 +40,12 @@ export default function Home() {
           </div>
         </div>
       </div>
+
+      {!isMobile && (
+        <div className="absolute bottom-2 right-2">
+          <SupportCard />
+        </div>
+      )}
     </PageBase>
   );
 }
