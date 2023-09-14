@@ -1,4 +1,4 @@
-import React, { type CSSProperties, useMemo, useRef } from "react";
+import React, { type CSSProperties, useMemo, useRef, useEffect } from "react";
 import axios from "axios";
 import { useState } from "react";
 import { api } from "~/utils/api";
@@ -100,9 +100,17 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
 
     return getCostUploadByFileType(
       file.type,
-      audioDuration ? { audioDurationInSeconds: audioDuration } : undefined,
+      audioDuration
+        ? { audioDurationInSeconds: Math.ceil(audioDuration) }
+        : undefined,
     );
   }, [audioDuration, file]);
+
+  useEffect(() => {
+    if (costForFile === 0) {
+      setHasEnoughCoins(true);
+    }
+  }, [costForFile]);
 
   const clearFile = () => {
     inputRef.current?.value && (inputRef.current.value = "");
@@ -157,7 +165,9 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
           type: file.type,
           size: file.size,
           options: {
-            audioDurationInSeconds: audioDuration,
+            audioDurationInSeconds: audioDuration
+              ? Math.ceil(audioDuration)
+              : undefined,
           },
         },
         {

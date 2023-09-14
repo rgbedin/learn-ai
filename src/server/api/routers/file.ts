@@ -176,6 +176,11 @@ const extractAndStoreText = async (
 
     text = t;
     numPages = n;
+
+    if (!t) {
+      const tImage = await transcribeImage(key);
+      text = tImage;
+    }
   } else if (
     file.type ===
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
@@ -202,7 +207,7 @@ const extractAndStoreText = async (
     },
     data: {
       text,
-      hasProcessed: true,
+      hasProcessed: !!text,
       numPages,
     },
   });
@@ -211,6 +216,43 @@ const extractAndStoreText = async (
 };
 
 export const fileRouter = createTRPCRouter({
+  addRatingToSummary: privateProcedure
+
+    .input(
+      z.object({
+        uid: z.string().nonempty(),
+        rating: z.number().int().min(1).max(5),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const summary = await ctx.prisma.summary.findUnique({
+        where: {
+          uid: input.uid,
+          file: {
+            userId: ctx.userId,
+          },
+        },
+      });
+
+      if (!summary) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Summary not found",
+        });
+      }
+
+      const updatedSummary = await ctx.prisma.summary.update({
+        where: {
+          uid: input.uid,
+        },
+        data: {
+          rating: input.rating,
+        },
+      });
+
+      return updatedSummary;
+    }),
+
   onAfterUpload: privateProcedure
     .input(
       z.object({

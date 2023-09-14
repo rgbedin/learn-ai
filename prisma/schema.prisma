@@ -70,6 +70,7 @@ model Summary {
   language  String
   pageStart Int?
   pageEnd   Int?
+  rating    Int?
   file      File     @relation(fields: [fileUid], references: [uid], onDelete: Cascade)
   fileUid   String
 

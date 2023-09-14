@@ -96,7 +96,7 @@ export const PlanCard: React.FC<PlanCardProps> = ({
 
   return (
     <div
-      className={`relative w-fit max-w-sm rounded-lg border border-gray-200 ${bgStyle} p-4 shadow dark:border-gray-700 dark:bg-gray-800 sm:p-4`}
+      className={`relative w-1/3 max-w-sm rounded-lg border border-gray-200 ${bgStyle} p-4 shadow dark:border-gray-700 dark:bg-gray-800 sm:p-4`}
     >
       <h5 className="mb-4 text-xl font-medium text-gray-500 dark:text-gray-400">
         {name}
@@ -159,15 +159,6 @@ export const PlanCard: React.FC<PlanCardProps> = ({
           {getCheckoutUrl.isLoading || isLoadingUrl
             ? "Loading..."
             : "Choose Plan"}
-        </button>
-      )}
-
-      {!price && (
-        <button
-          type="button"
-          className="inline-flex w-full cursor-not-allowed justify-center rounded-lg bg-gray-600 px-5 py-2.5 text-center text-sm font-medium text-white"
-        >
-          Current Plan
         </button>
       )}
 

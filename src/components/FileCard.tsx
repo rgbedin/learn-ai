@@ -66,7 +66,7 @@ export const FileCard: React.FC<FileCardProps> = ({ file, onClick }) => {
       onClick={onClickWrapper}
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
-      className="relative flex h-[200px] w-[190px] cursor-pointer flex-col items-center justify-between gap-4 border-[1px] border-gray-200 bg-white px-4 pb-4 pt-6 transition hover:translate-y-[-3px]"
+      className="relative flex h-[200px] w-[170px] cursor-pointer flex-col items-center justify-between gap-4 border-[1px] border-gray-200 bg-white px-4 pb-4 pt-6 transition hover:translate-y-[-3px]"
     >
       {!isLoading && (
         <FileIcon type={file.type} previewUrl={data?.previewUrl} size="lg" />

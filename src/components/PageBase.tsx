@@ -28,7 +28,7 @@ export const PageBase: React.FC<PageBaseProps> = ({ children, showGoBack }) => {
         <div className="z-10 flex h-[60px] flex-shrink-0 items-center justify-between bg-[#003049] p-4">
           <div className="flex flex-1 items-center gap-2">
             <BiSolidUserCircle size={25} color="white" />
-            <span className="text-white">{user?.fullName}</span>
+            <span className="line-clamp-1 text-white">{user?.fullName}</span>
           </div>
 
           <div className="flex items-center gap-5">

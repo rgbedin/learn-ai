@@ -5,6 +5,8 @@ import { useEffect, useMemo, useState } from "react";
 import Languages from "~/assets/languages.json";
 import { getCostBySummaryTypeAndPages } from "~/utils/costs";
 import CostDisplay from "./CostDisplay";
+import { api } from "~/utils/api";
+import UpgradeInline from "./UpgradeInline";
 
 interface SummarizeOptions {
   file: File;
@@ -19,10 +21,14 @@ export const SummarizeOptions: React.FC<SummarizeOptions> = ({
   onCancel,
   onNext,
 }) => {
-  const [language, setLanguage] = useState<string>();
+  const [language, setLanguage] = useState<string>("en");
   const [pageStart, setPageStart] = useState<number>();
   const [pageEnd, setPageEnd] = useState<number>();
   const [hasEnoughCoins, setHasEnoughCoins] = useState<boolean>(true);
+
+  const { data: subsInfo } = api.user.getSubscriptionStatus.useQuery();
+
+  const hasValidSub = useMemo(() => subsInfo?.isValid, [subsInfo]);
 
   const canSelectPages = useMemo(() => !!file.numPages, [file.numPages]);
 
@@ -88,12 +94,12 @@ export const SummarizeOptions: React.FC<SummarizeOptions> = ({
 
         <select
           id="countries"
+          disabled={!hasValidSub || hasValidSub === undefined}
+          value={language}
           onChange={(e) => setLanguage(e.target.value)}
           className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:focus:border-blue-500 dark:focus:ring-blue-500"
         >
-          <option selected value={""}>
-            Choose a language
-          </option>
+          <option value={""}>Choose a language</option>
 
           {Languages.languages.map((l) => (
             <option key={l.code} value={l.code}>
@@ -101,6 +107,16 @@ export const SummarizeOptions: React.FC<SummarizeOptions> = ({
             </option>
           ))}
         </select>
+
+        {hasValidSub === false && (
+          <div className="mt-4 rounded-sm bg-red-100 p-2">
+            <span className="text-sm">
+              Free members can only create {label} in English.
+            </span>
+
+            <UpgradeInline text="Upgrade to a paid plan to unlock more languages." />
+          </div>
+        )}
       </div>
 
       <div className="flex flex-col gap-1">
@@ -184,7 +200,7 @@ export const SummarizeOptions: React.FC<SummarizeOptions> = ({
           disabled={!canProceed || !hasEnoughCoins}
           className="self-end rounded bg-[#003049] px-6 py-3 text-sm font-bold uppercase text-white shadow outline-none transition-all duration-150 ease-linear hover:shadow-lg focus:outline-none active:bg-[#003049] disabled:cursor-not-allowed disabled:opacity-50"
           type="button"
-          onClick={() => onNext(language!, pageStart, pageEnd)}
+          onClick={() => onNext(language, pageStart, pageEnd)}
         >
           Next
         </button>

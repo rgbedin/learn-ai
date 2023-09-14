@@ -19,7 +19,7 @@ export default function UpgradeInline({
   return (
     <>
       <span
-        className="ml-2 cursor-pointer text-sm text-blue-700 hover:underline"
+        className="cursor-pointer text-sm text-blue-700 hover:underline lg:ml-2"
         onClick={() => setShowModal(true)}
       >
         {text}

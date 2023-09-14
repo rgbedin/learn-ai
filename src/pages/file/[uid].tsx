@@ -11,6 +11,7 @@ import { SummaryView } from "~/components/SummaryView";
 import { SummarizeModal } from "~/components/SummarizeModal";
 import { ChatModal } from "~/components/ChatModal";
 import { useRouter } from "next/router";
+import { useIsMobile } from "~/hooks/useIsMobile";
 
 dayjs.extend(relativeTime);
 
@@ -21,7 +22,11 @@ export const FilePage: NextPage<{ uid: string }> = ({ uid }) => {
   const summary = searchParams.get("summary");
   const chat = searchParams.get("chat");
 
-  const { data: file } = api.file.getFileByUid.useQuery(uid);
+  const router = useRouter();
+
+  const { data: file } = api.file.getFileByUid.useQuery(uid, {
+    enabled: !!uid,
+  });
 
   const { data: downloadUrl } = api.file.getDownloadUrl.useQuery(
     {
@@ -33,9 +38,14 @@ export const FilePage: NextPage<{ uid: string }> = ({ uid }) => {
     },
   );
 
+  const isMobile = useIsMobile();
+
   const renderAsObject = useMemo(
-    () => file?.type === "application/pdf" || file?.type.includes("audio/"),
-    [file?.type],
+    () =>
+      isMobile
+        ? file?.type.includes("audio/")
+        : file?.type === "application/pdf" || file?.type.includes("audio/"),
+    [file?.type, isMobile],
   );
 
   const isAudio = useMemo(() => file?.type.includes("audio/"), [file?.type]);
@@ -70,9 +80,9 @@ export const FilePage: NextPage<{ uid: string }> = ({ uid }) => {
                 {isAudio && (
                   <div className="flex flex-col gap-3">
                     <span className="text-lg font-light">Transcript</span>
-                    <span className="whitespace-pre-line text-justify">
+                    <div className="whitespace-pre-line rounded-md bg-gray-200 p-2">
                       {file?.text}
-                    </span>
+                    </div>
                   </div>
                 )}
               </div>
@@ -89,8 +99,6 @@ export const FilePage: NextPage<{ uid: string }> = ({ uid }) => {
     file?.text,
     isAudio,
   ]);
-
-  const router = useRouter();
 
   return (
     <>
