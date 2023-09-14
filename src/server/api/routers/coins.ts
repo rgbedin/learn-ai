@@ -5,10 +5,14 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 // eslint-disable-file @typescript-eslint/no-unsafe-member-access
 import { TRPCError } from "@trpc/server";
+import dayjs from "dayjs";
 import { createTRPCRouter, privateProcedure } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
+import { getUserSubscriptionStatus } from "./user";
 
 const INITIAL_COINS = 5;
+
+export const COINS_PER_MONTH = 50;
 
 export const ensureUserHasCoins = async (userId: string, amount: number) => {
   const coins = await prisma.coins.findUnique({
@@ -45,6 +49,47 @@ export const deductCoins = async (userId: string, amount: number) => {
   });
 };
 
+export const giveMonthlyRefillIfNeeded = async (
+  userId: string,
+  bypassSubscriptionCheck = false,
+) => {
+  let coins = await prisma.coins.findUnique({
+    where: {
+      userId,
+    },
+  });
+
+  if (!coins) {
+    throw new TRPCError({
+      code: "INTERNAL_SERVER_ERROR",
+      message: "User has no coins",
+    });
+  }
+
+  const { isValid } = await getUserSubscriptionStatus(userId);
+
+  if (
+    (isValid ?? bypassSubscriptionCheck) && // If subscription is valid or we're bypassing the check
+    coins &&
+    (!coins.lastMonthlyRefill || // If user has never had a refill
+      Math.abs(dayjs(coins.lastMonthlyRefill).diff(new Date(), "month")) >= 1) // If user has had a refill more than a month ago
+  ) {
+    coins = await prisma.coins.update({
+      where: {
+        userId,
+      },
+      data: {
+        coins: {
+          increment: COINS_PER_MONTH,
+        },
+        lastMonthlyRefill: new Date(),
+      },
+    });
+  }
+
+  return coins;
+};
+
 export const coinsRouter = createTRPCRouter({
   getMyCoins: privateProcedure.query(async ({ ctx }) => {
     let coins = await ctx.prisma.coins.findUnique({
@@ -61,6 +106,8 @@ export const coinsRouter = createTRPCRouter({
         },
       });
     }
+
+    coins = await giveMonthlyRefillIfNeeded(ctx.userId);
 
     return coins.coins;
   }),

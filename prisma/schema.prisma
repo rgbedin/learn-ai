@@ -20,8 +20,9 @@ model User {
 }
 
 model Coins {
-  userId  String   @id
-  coins   Int
+  userId              String   @id
+  coins               Int
+  lastMonthlyRefill   DateTime?
 }
 
 model File {
