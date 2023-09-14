@@ -9,10 +9,7 @@ import dayjs from "dayjs";
 import { createTRPCRouter, privateProcedure } from "~/server/api/trpc";
 import { prisma } from "~/server/db";
 import { getUserSubscriptionStatus } from "./user";
-
-const INITIAL_COINS = 5;
-
-export const COINS_PER_MONTH = 50;
+import { COINS_PER_MONTH, INITIAL_COINS } from "~/utils/constants";
 
 export const ensureUserHasCoins = async (userId: string, amount: number) => {
   const coins = await prisma.coins.findUnique({

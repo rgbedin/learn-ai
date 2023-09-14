@@ -4,6 +4,7 @@ import { api } from "~/utils/api";
 import { useMemo, useState } from "react";
 import getStripe from "~/utils/getStripe";
 import toast from "react-hot-toast";
+import { COINS_PER_BUNDLE } from "~/utils/constants";
 
 interface BuyCoinsModalProps {
   onClose: () => void;
@@ -97,7 +98,7 @@ export const BuyCoinsModal: React.FC<BuyCoinsModalProps> = ({ onClose }) => {
 
                   <span>
                     Each bundle contains{" "}
-                    <span className="font-bold">50 coins</span>.
+                    <span className="font-bold">{COINS_PER_BUNDLE} coins</span>.
                   </span>
 
                   <input

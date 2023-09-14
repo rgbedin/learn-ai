@@ -10,6 +10,7 @@ import { Stripe } from "stripe";
 import { createTRPCRouter, privateProcedure } from "~/server/api/trpc";
 import { type PrismaClient } from "@prisma/client";
 import { clerkClient } from "@clerk/nextjs";
+import { COINS_PER_BUNDLE } from "~/utils/constants";
 
 export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2023-08-16",
@@ -116,7 +117,7 @@ export const handleStripeCheckoutSessionCompleted = async ({
         },
         data: {
           coins: {
-            increment: quantity,
+            increment: quantity * COINS_PER_BUNDLE,
           },
         },
       });

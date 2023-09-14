@@ -1,6 +1,6 @@
 import { api } from "~/utils/api";
 import { GiTwoCoins } from "react-icons/gi";
-import IncreaseCoins from "./IncreaseCoins";
+import UpgradeInline from "./UpgradeInline";
 import { useMemo } from "react";
 import dayjs from "dayjs";
 
@@ -26,7 +26,7 @@ export default function CoinsCard() {
         </span>
       )}
 
-      <IncreaseCoins />
+      <UpgradeInline />
     </div>
   );
 }

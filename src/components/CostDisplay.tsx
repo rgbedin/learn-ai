@@ -2,7 +2,7 @@ import { useEffect, useMemo } from "react";
 import { AiOutlineQuestionCircle } from "react-icons/ai";
 import { GiTwoCoins } from "react-icons/gi";
 import { api } from "~/utils/api";
-import IncreaseCoins from "./IncreaseCoins";
+import UpgradeInline from "./UpgradeInline";
 
 interface CoinsDisplayProps {
   amount: number;
@@ -61,7 +61,7 @@ export default function CostDisplay({
         </div>
       )}
 
-      {hasEnoughCoins === false && <IncreaseCoins />}
+      {hasEnoughCoins === false && <UpgradeInline />}
     </div>
   );
 }

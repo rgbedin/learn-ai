@@ -11,6 +11,11 @@ import { BiUpload } from "react-icons/bi";
 import { FeaturesCarousel } from "./FeaturesCarousel";
 import { getCostUploadByFileType } from "~/utils/costs";
 import CostDisplay from "./CostDisplay";
+import UpgradeInline from "./UpgradeInline";
+
+const UPLOAD_LIMIT_FREE = 3000000;
+
+const UPLOAD_LIMIT_PAID = 50000000;
 
 const dropzoneBaseStyle: CSSProperties = {
   flex: 1,
@@ -38,6 +43,15 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
   const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [hasEnoughCoins, setHasEnoughCoins] = useState<boolean>();
 
+  const { data: subsInfo } = api.user.getSubscriptionStatus.useQuery();
+
+  const hasValidSub = useMemo(() => subsInfo?.isValid, [subsInfo]);
+
+  const uploadLimit = useMemo(() => {
+    if (hasValidSub) return UPLOAD_LIMIT_PAID;
+    return UPLOAD_LIMIT_FREE;
+  }, [hasValidSub]);
+
   const { getRootProps, getInputProps, inputRef } = useDropzone({
     accept: {
       "image/*": ["png", "jpg", "jpeg"],
@@ -45,7 +59,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
       "application/pdf": ["pdf"],
     },
     maxFiles: 1,
-    maxSize: 20000000,
+    maxSize: uploadLimit,
     onDropRejected: (err) => {
       toast.error(err[0]?.errors[0]?.message ?? "Invalid file type or size.");
     },
@@ -211,6 +225,17 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
                     </span>
                   </div>
                 </div>
+
+                {subsInfo?.isValid === false && (
+                  <div className="mt-4 rounded-sm bg-red-100 p-2">
+                    <span className="text-sm">
+                      Free members can only upload files up to{" "}
+                      {humanFileSize(uploadLimit)}.
+                    </span>
+
+                    <UpgradeInline text="Upgrade to a paid plan to upload larger files." />
+                  </div>
+                )}
 
                 {file && (
                   <div className="mt-4 flex flex-col rounded-md bg-gray-100 px-2 py-2">

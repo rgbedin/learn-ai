@@ -3,7 +3,13 @@ import { UpsellModal } from "./UpsellModal";
 import { api } from "~/utils/api";
 import { BuyCoinsModal } from "./BuyCoinsModal";
 
-export default function IncreaseCoins() {
+interface UpgradeInlineProps {
+  text?: string;
+}
+
+export default function UpgradeInline({
+  text = "Want to increase your coins now?",
+}: UpgradeInlineProps) {
   const [showModal, setShowModal] = useState(false);
 
   const { data: subsInfo } = api.user.getSubscriptionStatus.useQuery();
@@ -16,7 +22,7 @@ export default function IncreaseCoins() {
         className="ml-2 cursor-pointer text-sm text-blue-700 hover:underline"
         onClick={() => setShowModal(true)}
       >
-        Want to increase your coins now?
+        {text}
       </span>
 
       {showModal && !hasSub && (

@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
 /* eslint-disable react/no-unescaped-entities */
+import { COINS_PER_MONTH, INITIAL_COINS } from "~/utils/constants";
 import { PlanCard } from "./PlanCard";
 
 interface UpsellModalProps {
@@ -42,7 +43,7 @@ export const UpsellModal: React.FC<UpsellModalProps> = ({ onClose }) => {
                     <PlanCard
                       name="Free Plan"
                       featuresEnabled={[
-                        "5 initial coins on signup",
+                        `${INITIAL_COINS} initial coins on signup`,
                         "Upload PDF files only",
                         "Summarize up to 5 pages",
                       ]}
@@ -60,7 +61,7 @@ export const UpsellModal: React.FC<UpsellModalProps> = ({ onClose }) => {
                   <PlanCard
                     name="Montlhy Plan"
                     featuresEnabled={[
-                      "50 coins per month",
+                      `${COINS_PER_MONTH} coins per month`,
                       "Upload PDF, image and audio files",
                       "Summarize unlimited pages",
                       "Get audio file transcripts",
@@ -75,7 +76,7 @@ export const UpsellModal: React.FC<UpsellModalProps> = ({ onClose }) => {
                   <PlanCard
                     name="Annual Plan"
                     featuresEnabled={[
-                      "50 coins per month",
+                      `${COINS_PER_MONTH} coins per month`,
                       "Upload PDF, image and audio files",
                       "Summarize unlimited pages",
                       "Get audio file transcripts",
