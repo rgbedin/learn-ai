@@ -35,7 +35,7 @@ export const getDownloadUrl = async (key: string) => {
   const params = {
     Bucket: BUCKET_NAME,
     Key: key,
-    Expires: 60,
+    Expires: 60 * 60 * 24 * 7,
   };
 
   const promise = new Promise<string>((resolve) => {

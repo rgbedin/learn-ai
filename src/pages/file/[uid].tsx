@@ -12,6 +12,7 @@ import { SummarizeModal } from "~/components/SummarizeModal";
 import { ChatModal } from "~/components/ChatModal";
 import { useRouter } from "next/router";
 import { useIsMobile } from "~/hooks/useIsMobile";
+import { DownloadFile } from "~/components/DownloadFile";
 
 dayjs.extend(relativeTime);
 
@@ -38,15 +39,12 @@ export const FilePage: NextPage<{ uid: string }> = ({ uid }) => {
     },
   );
 
-  const isMobile = useIsMobile();
-
   const renderAsObject = useMemo(
-    () =>
-      isMobile
-        ? file?.type.includes("audio/")
-        : file?.type === "application/pdf" || file?.type.includes("audio/"),
-    [file?.type, isMobile],
+    () => file?.type === "application/pdf" || file?.type.includes("audio/"),
+    [file?.type],
   );
+
+  const isMobile = useIsMobile();
 
   const isAudio = useMemo(() => file?.type.includes("audio/"), [file?.type]);
 
@@ -103,8 +101,14 @@ export const FilePage: NextPage<{ uid: string }> = ({ uid }) => {
   return (
     <>
       <PageBase showGoBack>
-        <div className="grid flex-1 grid-cols-1 gap-2 lg:grid-cols-2">
-          {documentViewer}
+        <div className="flex-1 flex-col gap-2 lg:grid lg:grid-cols-2">
+          {!isMobile && documentViewer}
+
+          {isMobile && (
+            <div className="mb-4">
+              <DownloadFile fileKey={file?.key} />
+            </div>
+          )}
 
           <div className="flex flex-col gap-2">
             {summary && <SummaryView summaryUid={summary} />}

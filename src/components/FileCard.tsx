@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { type File } from "@prisma/client";
 import { api } from "~/utils/api";
 import { FileIcon } from "./FileIcon";
@@ -8,6 +8,7 @@ import dayjs from "dayjs";
 
 import relativeTime from "dayjs/plugin/relativeTime";
 import { toast } from "react-hot-toast";
+import { useIsMobile } from "~/hooks/useIsMobile";
 
 dayjs.extend(relativeTime);
 
@@ -61,12 +62,21 @@ export const FileCard: React.FC<FileCardProps> = ({ file, onClick }) => {
     );
   };
 
+  const isMobile = useIsMobile();
+
+  const sizeStyle = useMemo(() => {
+    if (isMobile) {
+      return "h-[200px] w-[calc(50%-10px)]";
+    }
+    return "h-[200px] w-[170px]";
+  }, [isMobile]);
+
   return (
     <div
       onClick={onClickWrapper}
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
-      className="relative flex h-[200px] w-[170px] cursor-pointer flex-col items-center justify-between gap-4 border-[1px] border-gray-200 bg-white px-4 pb-4 pt-6 transition hover:translate-y-[-3px]"
+      className={`relative flex ${sizeStyle} cursor-pointer flex-col items-center justify-between gap-4 border-[1px] border-gray-200 bg-white px-4 pb-4 pt-6 transition hover:translate-y-[-3px]`}
     >
       {!isLoading && (
         <FileIcon type={file.type} previewUrl={data?.previewUrl} size="lg" />
