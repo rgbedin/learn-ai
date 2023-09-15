@@ -1,7 +1,7 @@
 /* eslint-disable react/no-unescaped-entities */
+import Image from "next/image";
 import { useState } from "react";
 import { AiOutlineCloseCircle } from "react-icons/ai";
-import { MdOutlineContactSupport } from "react-icons/md";
 
 export default function SupportCard() {
   const [close, setClose] = useState(false);
@@ -10,7 +10,13 @@ export default function SupportCard() {
 
   return (
     <div className="max-w-sm  border border-gray-200 bg-white p-3 shadow dark:border-gray-700 dark:bg-gray-800">
-      <MdOutlineContactSupport size={32} />
+      <Image
+        src="https://public-learn-ai-m93.s3.amazonaws.com/mage_wiz.png"
+        width={50}
+        height={100}
+        alt="Mage Wiz"
+        objectFit="contain"
+      />
 
       <div
         onClick={() => setClose(true)}
@@ -42,9 +48,9 @@ export default function SupportCard() {
         >
           <path
             stroke="currentColor"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
             d="M15 11v4.833A1.166 1.166 0 0 1 13.833 17H2.167A1.167 1.167 0 0 1 1 15.833V4.167A1.166 1.166 0 0 1 2.167 3h4.618m4.447-2H17v5.768M9.111 8.889l7.778-7.778"
           />
         </svg>

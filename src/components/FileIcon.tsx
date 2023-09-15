@@ -9,7 +9,7 @@ import Image from "next/image";
 interface FileIconProps {
   type: string;
   previewUrl: string | null;
-  size: "lg" | "md";
+  size: "sm" | "lg" | "md";
 }
 
 export const FileIcon: React.FC<FileIconProps> = ({
@@ -26,6 +26,7 @@ export const FileIcon: React.FC<FileIconProps> = ({
   };
 
   const sizes = {
+    sm: "h-[25px] w-[25px]",
     lg: "h-[96px] w-[80px]",
     md: "h-[60px] w-[50px]",
   };

@@ -375,6 +375,7 @@ export const fileRouter = createTRPCRouter({
         file: {
           select: {
             name: true,
+            type: true,
           },
         },
         pageStart: true,

@@ -3,6 +3,7 @@ import dayjs from "dayjs";
 import { useRouter } from "next/router";
 import { useMemo } from "react";
 import { getInfoForLanguage } from "~/utils/getInfoForLanguage";
+import { FileIcon } from "./FileIcon";
 
 interface SummaryCard {
   summary: Pick<
@@ -17,12 +18,14 @@ interface SummaryCard {
   >;
   fileName?: string;
   fixedWidth?: boolean;
+  fileType?: string;
 }
 
 export const SummaryCard: React.FC<SummaryCard> = ({
   summary,
   fileName,
   fixedWidth,
+  fileType,
 }) => {
   const router = useRouter();
 
@@ -61,7 +64,12 @@ export const SummaryCard: React.FC<SummaryCard> = ({
       key={summary.uid}
       className={`relative flex cursor-pointer items-center justify-between gap-4 border-[1px]  bg-white p-4 text-sm ${style.width}`}
     >
-      {fileName && <span className="line-clamp-1">{fileName}</span>}
+      {fileName && (
+        <div className="flex items-center gap-3">
+          {fileType && <FileIcon type={fileType} size="sm" previewUrl={null} />}
+          <span className="line-clamp-1">{fileName}</span>
+        </div>
+      )}
 
       {!fixedWidth && (
         <>
@@ -72,11 +80,10 @@ export const SummaryCard: React.FC<SummaryCard> = ({
           </span>
 
           <span className="line-clamp-1">
-            {getInfoForLanguage(summary.language)?.language}{" "}
-            {getInfoForLanguage(summary.language)?.emoji}
+            {getInfoForLanguage(summary.language)?.language}
           </span>
 
-          <span className="line-clamp-1">
+          <span className="line-clamp-1 text-xs font-semibold uppercase text-gray-500">
             {dayjs(summary.createdAt).fromNow()}
           </span>
         </>

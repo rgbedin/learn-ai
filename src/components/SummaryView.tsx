@@ -51,7 +51,7 @@ export const SummaryView: React.FC<SummaryView> = ({ summaryUid }) => {
 
   return (
     <div className="relative flex h-full flex-col gap-6">
-      <span className="text-xl font-light">
+      <span className="text-md w-fit rounded-sm bg-[#003049] p-1 px-2 font-light text-white">
         {!summary ? "Loading..." : label}
       </span>
 

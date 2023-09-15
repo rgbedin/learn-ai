@@ -1,8 +1,8 @@
 import { useEffect, useMemo } from "react";
 import { AiOutlineQuestionCircle } from "react-icons/ai";
-import { GiTwoCoins } from "react-icons/gi";
 import { api } from "~/utils/api";
 import UpgradeInline from "./UpgradeInline";
+import Image from "next/image";
 
 interface CoinsDisplayProps {
   amount: number;
@@ -40,7 +40,13 @@ export default function CostDisplay({
 
   return (
     <div className={`flex items-center gap-1 rounded-md px-2 py-2 ${bgStyle}`}>
-      <GiTwoCoins size={22} />
+      <Image
+        src="https://public-learn-ai-m93.s3.amazonaws.com/coins.png"
+        width={20}
+        height={20}
+        alt="coins"
+      />
+
       <span className="text-sm">
         {hasEnoughCoins === false ? notEnoughCoinsMessage : label}
       </span>

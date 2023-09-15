@@ -15,6 +15,7 @@ export default function RecentSummaries() {
           key={s.uid}
           summary={s}
           fileName={s.file.name}
+          fileType={s.file.type}
           fixedWidth
         />
       ))}
