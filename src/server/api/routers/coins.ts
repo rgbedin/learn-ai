@@ -50,41 +50,43 @@ export const giveMonthlyRefillIfNeeded = async (
   userId: string,
   bypassSubscriptionCheck = false,
 ) => {
-  let coins = await prisma.coins.findUnique({
-    where: {
-      userId,
-    },
-  });
-
-  if (!coins) {
-    throw new TRPCError({
-      code: "INTERNAL_SERVER_ERROR",
-      message: "User has no coins",
-    });
-  }
-
-  const { isValid } = await getUserSubscriptionStatus(userId);
-
-  if (
-    (isValid ?? bypassSubscriptionCheck) && // If subscription is valid or we're bypassing the check
-    coins &&
-    (!coins.lastMonthlyRefill || // If user has never had a refill
-      Math.abs(dayjs(coins.lastMonthlyRefill).diff(new Date(), "month")) >= 1) // If user has had a refill more than a month ago
-  ) {
-    coins = await prisma.coins.update({
+  return await prisma.$transaction(async (tx) => {
+    let coins = await tx.coins.findUnique({
       where: {
         userId,
       },
-      data: {
-        coins: {
-          increment: COINS_PER_MONTH,
-        },
-        lastMonthlyRefill: new Date(),
-      },
     });
-  }
 
-  return coins;
+    if (!coins) {
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "User has no coins",
+      });
+    }
+
+    const { isValid } = await getUserSubscriptionStatus(userId);
+
+    if (
+      (isValid ?? bypassSubscriptionCheck) && // If subscription is valid or we're bypassing the check
+      coins &&
+      (!coins.lastMonthlyRefill || // If user has never had a refill
+        Math.abs(dayjs(coins.lastMonthlyRefill).diff(new Date(), "month")) >= 1) // If user has had a refill more than a month ago
+    ) {
+      coins = await tx.coins.update({
+        where: {
+          userId,
+        },
+        data: {
+          coins: {
+            increment: COINS_PER_MONTH,
+          },
+          lastMonthlyRefill: new Date(),
+        },
+      });
+    }
+
+    return coins;
+  });
 };
 
 export const coinsRouter = createTRPCRouter({
