@@ -1,8 +1,9 @@
 /* eslint-disable react/no-unescaped-entities */
 import { type SummaryType, type File } from "@prisma/client";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { SummarizeOptions } from "./SummarizeOptions";
 import { SummarizeResult } from "./SummarizeResult";
+import { logEvent } from "~/hooks/useAmplitudeInit";
 
 interface SummarizeModal {
   file: File;
@@ -18,6 +19,10 @@ export const SummarizeModal: React.FC<SummarizeModal> = ({
   const [language, setLanguage] = useState<string>();
   const [pageStart, setPageStart] = useState<number>();
   const [pageEnd, setPageEnd] = useState<number>();
+
+  useEffect(() => {
+    logEvent("OPEN_SUMMARIZE_MODAL", { type });
+  }, [type]);
 
   const label = useMemo(
     () =>

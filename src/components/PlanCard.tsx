@@ -5,6 +5,7 @@
 
 import { useMemo, useState } from "react";
 import toast from "react-hot-toast";
+import { logEvent } from "~/hooks/useAmplitudeInit";
 import { api } from "~/utils/api";
 import getStripe from "~/utils/getStripe";
 
@@ -36,6 +37,8 @@ export const PlanCard: React.FC<PlanCardProps> = ({
   const getCheckoutUrl = api.stripe.generateCheckoutUrl.useMutation();
 
   const onClick = () => {
+    logEvent("CLICK_PLAN_CARD", { product });
+
     getCheckoutUrl.mutate(
       {
         product: product as any,

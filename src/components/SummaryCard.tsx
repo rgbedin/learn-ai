@@ -4,6 +4,7 @@ import { useRouter } from "next/router";
 import { useMemo } from "react";
 import { getInfoForLanguage } from "~/utils/getInfoForLanguage";
 import { FileIcon } from "./FileIcon";
+import { logEventWrapper } from "~/hooks/useAmplitudeInit";
 
 interface SummaryCard {
   summary: Pick<
@@ -58,9 +59,12 @@ export const SummaryCard: React.FC<SummaryCard> = ({
 
   return (
     <div
-      onClick={() =>
-        void router.push(`/file/${summary.fileUid}?summary=${summary.uid}`)
-      }
+      onClick={logEventWrapper(
+        () =>
+          void router.push(`/file/${summary.fileUid}?summary=${summary.uid}`),
+        "CLICK_SUMMARY_CARD",
+        { summaryUid: summary.uid, summaryType: summary.type, fixedWidth },
+      )}
       key={summary.uid}
       className={`relative flex cursor-pointer items-center justify-between gap-4 border-[1px]  bg-white p-4 text-sm ${style.width}`}
     >

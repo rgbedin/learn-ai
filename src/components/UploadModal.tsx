@@ -12,6 +12,7 @@ import { FeaturesCarousel } from "./FeaturesCarousel";
 import { getCostUploadByFileType } from "~/utils/costs";
 import CostDisplay from "./CostDisplay";
 import UpgradeInline from "./UpgradeInline";
+import { logEvent } from "@amplitude/analytics-browser";
 
 const UPLOAD_LIMIT_FREE = 3000000;
 
@@ -68,6 +69,12 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
     },
     onDrop(acceptedFiles) {
       setFile(undefined);
+
+      logEvent("FILE_UPLOAD", {
+        file: acceptedFiles[0]?.name,
+        size: acceptedFiles[0]?.size,
+        type: acceptedFiles[0]?.type,
+      });
 
       setTimeout(() => {
         if (acceptedFiles.length > 0) {

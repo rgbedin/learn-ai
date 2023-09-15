@@ -3,6 +3,7 @@ import { api } from "~/utils/api";
 import { getInfoForLanguage } from "~/utils/getInfoForLanguage";
 import { Rating } from "react-simple-star-rating";
 import toast from "react-hot-toast";
+import { logEvent } from "~/hooks/useAmplitudeInit";
 
 interface SummaryView {
   summaryUid: string;
@@ -16,6 +17,10 @@ export const SummaryView: React.FC<SummaryView> = ({ summaryUid }) => {
   const sendRating = api.file.addRatingToSummary.useMutation();
 
   const ctx = api.useContext();
+
+  useEffect(() => {
+    logEvent("VIEW_SUMMARY", { summaryUid });
+  }, [summaryUid]);
 
   const onRatingChange = (rating: number) => {
     setRating(rating);

@@ -7,6 +7,7 @@ import { getCostBySummaryTypeAndPages } from "~/utils/costs";
 import CostDisplay from "./CostDisplay";
 import { api } from "~/utils/api";
 import UpgradeInline from "./UpgradeInline";
+import { logEvent } from "~/hooks/useAmplitudeInit";
 
 interface SummarizeOptions {
   file: File;
@@ -90,6 +91,20 @@ export const SummarizeOptions: React.FC<SummarizeOptions> = ({
     const coins = getCostBySummaryTypeAndPages(type, pageStart, pageEnd);
     return coins;
   }, [type, pageStart, pageEnd]);
+
+  const onCancelWrapper = () => {
+    logEvent("CANCEL_SUMMARIZE", { file, type });
+    onCancel();
+  };
+
+  const onNextWrapper = (
+    language: string,
+    pageStart?: number,
+    pageEnd?: number,
+  ) => {
+    logEvent("NEXT_SUMMARIZE", { file, type, language, pageStart, pageEnd });
+    onNext(language, pageStart, pageEnd);
+  };
 
   return (
     <div className="relative flex h-full flex-col gap-6">
@@ -207,7 +222,7 @@ export const SummarizeOptions: React.FC<SummarizeOptions> = ({
         <button
           className="rounded bg-gray-300 px-6 py-3 text-sm font-bold uppercase text-gray-500 outline-none transition-all duration-150 ease-linear focus:outline-none"
           type="button"
-          onClick={onCancel}
+          onClick={onCancelWrapper}
         >
           Cancel
         </button>
@@ -216,7 +231,7 @@ export const SummarizeOptions: React.FC<SummarizeOptions> = ({
           disabled={!canProceed || !hasEnoughCoins}
           className="self-end rounded bg-[#003049] px-6 py-3 text-sm font-bold uppercase text-white shadow outline-none transition-all duration-150 ease-linear hover:shadow-lg focus:outline-none active:bg-[#003049] disabled:cursor-not-allowed disabled:opacity-50"
           type="button"
-          onClick={() => onNext(language, pageStart, pageEnd)}
+          onClick={() => onNextWrapper(language, pageStart, pageEnd)}
         >
           Next
         </button>

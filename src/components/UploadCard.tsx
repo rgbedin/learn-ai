@@ -5,6 +5,7 @@ import { BsFileArrowUp } from "react-icons/bs";
 import { api } from "~/utils/api";
 import { useIsMobile } from "~/hooks/useIsMobile";
 import Image from "next/image";
+import { logEventWrapper } from "~/hooks/useAmplitudeInit";
 
 export const UploadCard: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
@@ -32,7 +33,7 @@ export const UploadCard: React.FC = () => {
     <div className="relative">
       <div
         className={`flex flex-col ${sizeStyle} cursor-pointer items-center justify-center border-[1px] border-dashed border-gray-400 bg-white text-gray-200 transition hover:text-gray-300`}
-        onClick={() => setShowModal(true)}
+        onClick={logEventWrapper(() => setShowModal(true), "CLICK_UPLOAD_FILE")}
       >
         <BsFileArrowUp size={70} className="mx-auto mb-2 mt-8" />
 

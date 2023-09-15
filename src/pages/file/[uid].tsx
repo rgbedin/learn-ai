@@ -2,7 +2,7 @@ import type { GetStaticProps, NextPage } from "next";
 import { api } from "~/utils/api";
 import { PageBase } from "../../components/PageBase";
 import DocViewer, { DocViewerRenderers } from "@cyntler/react-doc-viewer";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { OptionPicker, type OptionType } from "~/components/OptionPicker";
 import dayjs from "dayjs";
 import { useSearchParams } from "next/navigation";
@@ -13,6 +13,7 @@ import { ChatModal } from "~/components/ChatModal";
 import { useRouter } from "next/router";
 import { useIsMobile } from "~/hooks/useIsMobile";
 import { DownloadFile } from "~/components/DownloadFile";
+import { logEvent } from "@amplitude/analytics-browser";
 
 dayjs.extend(relativeTime);
 
@@ -24,6 +25,10 @@ export const FilePage: NextPage<{ uid: string }> = ({ uid }) => {
   const chat = searchParams.get("chat");
 
   const router = useRouter();
+
+  useEffect(() => {
+    logEvent("VIEW_FILE_PAGE", { uid });
+  }, [uid]);
 
   const { data: file } = api.file.getFileByUid.useQuery(uid, {
     enabled: !!uid,

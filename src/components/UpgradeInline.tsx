@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { UpsellModal } from "./UpsellModal";
 import { api } from "~/utils/api";
 import { BuyCoinsModal } from "./BuyCoinsModal";
+import { logEventWrapper } from "~/hooks/useAmplitudeInit";
 
 interface UpgradeInlineProps {
   text?: string;
@@ -20,17 +21,31 @@ export default function UpgradeInline({
     <>
       <span
         className="cursor-pointer text-sm text-blue-700 hover:underline lg:ml-2"
-        onClick={() => setShowModal(true)}
+        onClick={logEventWrapper(
+          () => setShowModal(true),
+          "CLICK_UPGRADE_INLINE",
+          { hasSubscription: hasSub },
+        )}
       >
         {text}
       </span>
 
       {showModal && !hasSub && (
-        <UpsellModal onClose={() => setShowModal(false)} />
+        <UpsellModal
+          onClose={logEventWrapper(
+            () => setShowModal(false),
+            "CLOSE_UPSELL_MODAL",
+          )}
+        />
       )}
 
       {showModal && hasSub && (
-        <BuyCoinsModal onClose={() => setShowModal(false)} />
+        <BuyCoinsModal
+          onClose={logEventWrapper(
+            () => setShowModal(false),
+            "CLOSE_BUY_COINS_MODAL",
+          )}
+        />
       )}
     </>
   );
