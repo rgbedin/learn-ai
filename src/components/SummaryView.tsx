@@ -59,8 +59,7 @@ export const SummaryView: React.FC<SummaryView> = ({ summaryUid }) => {
         <div className="flex flex-col gap-1">
           <span>
             <span className="font-bold">Language: </span>
-            {getInfoForLanguage(summary.language)?.language}{" "}
-            {getInfoForLanguage(summary.language)?.emoji}
+            {getInfoForLanguage(summary.language)?.language}
           </span>
 
           {summary.pageStart && summary.pageEnd && (
