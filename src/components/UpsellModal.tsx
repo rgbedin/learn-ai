@@ -75,7 +75,7 @@ export const UpsellModal: React.FC<UpsellModalProps> = ({ onClose }) => {
                     featuresEnabled={[
                       `${INITIAL_COINS} initial coins on signup`,
                       "Limit of 3MB per file",
-                      "Summarize only in English",
+                      "Summarize up to 5 pages",
                     ]}
                     product="FREE"
                     featuresDisabled={[
@@ -94,8 +94,9 @@ export const UpsellModal: React.FC<UpsellModalProps> = ({ onClose }) => {
                         `${COINS_PER_MONTH} coins per month`,
                         "Upload files up to 50MB",
                         "Audio file transcripts",
-                        "Detect handwritten notes' text",
+                        "Handwritten notes' text",
                         "30+ languages supported",
+                        "Summarize unlimited pages",
                         "Get extra coins for $0.10",
                       ]}
                       product="SUBS_MONTHLY"
@@ -110,8 +111,9 @@ export const UpsellModal: React.FC<UpsellModalProps> = ({ onClose }) => {
                         `${COINS_PER_MONTH} coins per month`,
                         "Upload files up to 50MB",
                         "Audio file transcripts",
-                        "Detect handwritten notes' text",
+                        "Handwritten notes' text",
                         "30+ languages supported",
+                        "Summarize unlimited pages",
                         "Get extra coins for $0.10",
                         "Cheapest plan/month",
                       ]}

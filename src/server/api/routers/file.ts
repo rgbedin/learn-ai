@@ -177,7 +177,8 @@ const extractAndStoreText = async (
     text = t;
     numPages = n;
 
-    if (!t) {
+    if (!t || t.trim().length === 0) {
+      numPages = undefined;
       const tImage = await transcribeImage(key);
       text = tImage;
     }

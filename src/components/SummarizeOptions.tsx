@@ -30,7 +30,34 @@ export const SummarizeOptions: React.FC<SummarizeOptions> = ({
 
   const hasValidSub = useMemo(() => subsInfo?.isValid, [subsInfo]);
 
-  const canSelectPages = useMemo(() => !!file.numPages, [file.numPages]);
+  const hasPagesToSelect = useMemo(() => !!file.numPages, [file.numPages]);
+
+  const maxNumberOfPagesAllowed = useMemo(
+    () => (hasValidSub === false ? 5 : Infinity),
+    [hasValidSub],
+  );
+
+  const numOfPagesSelected = useMemo(
+    () => (pageEnd ?? 0) - (pageStart ?? 0) + 1,
+    [pageStart, pageEnd],
+  );
+
+  const hasExceededMaxPages = useMemo(
+    () => numOfPagesSelected > maxNumberOfPagesAllowed,
+    [numOfPagesSelected, maxNumberOfPagesAllowed],
+  );
+
+  const invalidPages = useMemo(
+    () =>
+      !pageStart ||
+      !pageEnd ||
+      pageStart > pageEnd ||
+      pageStart <= 0 ||
+      pageStart > (file.numPages ?? 1) ||
+      pageEnd <= 0 ||
+      pageEnd > (file.numPages ?? 1),
+    [pageStart, pageEnd, file.numPages],
+  );
 
   useEffect(() => {
     setPageStart(1);
@@ -39,19 +66,10 @@ export const SummarizeOptions: React.FC<SummarizeOptions> = ({
   }, [file]);
 
   const canProceed = useMemo(() => {
-    if (canSelectPages)
-      return (
-        !!language &&
-        !!pageStart &&
-        !!pageEnd &&
-        pageStart <= pageEnd &&
-        pageStart > 0 &&
-        pageStart <= (file.numPages ?? 1) &&
-        pageEnd > 0 &&
-        pageEnd <= (file.numPages ?? 1)
-      );
+    if (hasPagesToSelect)
+      return !!language && !invalidPages && !hasExceededMaxPages;
     return !!language;
-  }, [canSelectPages, language, pageStart, pageEnd, file.numPages]);
+  }, [hasPagesToSelect, language, invalidPages, hasExceededMaxPages]);
 
   const isNumPagesHigh = useMemo(
     () => !!pageStart && !!pageEnd && pageEnd - pageStart > 24,
@@ -94,7 +112,6 @@ export const SummarizeOptions: React.FC<SummarizeOptions> = ({
 
         <select
           id="countries"
-          disabled={!hasValidSub || hasValidSub === undefined}
           value={language}
           onChange={(e) => setLanguage(e.target.value)}
           className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:focus:border-blue-500 dark:focus:ring-blue-500"
@@ -107,76 +124,75 @@ export const SummarizeOptions: React.FC<SummarizeOptions> = ({
             </option>
           ))}
         </select>
+      </div>
 
-        {hasValidSub === false && (
-          <div className="mt-4 rounded-sm bg-red-100 p-2">
-            <span className="text-sm">
-              Free members can only create {label} in English.
+      {hasPagesToSelect && (
+        <div className="flex flex-col gap-1">
+          <label htmlFor="length" className="text-sm font-medium text-gray-900">
+            Which pages should the {label} be between?
+          </label>
+
+          <span className="text-sm text-gray-600">
+            The shorter the {label}, the more concise it will be and the lesser
+            chances of it being accurate.
+          </span>
+
+          <div className="flex flex-row items-center gap-2">
+            <span className="flex-shrink-0 items-center text-sm text-gray-600">
+              Start page:
             </span>
 
-            <UpgradeInline text="Upgrade to a paid plan to unlock more languages." />
+            <input
+              id="length"
+              type="number"
+              min={1}
+              max={file.numPages ?? undefined}
+              value={pageStart}
+              onChange={(e) => setPageStart(parseInt(e.target.value))}
+              className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:focus:border-blue-500 dark:focus:ring-blue-500"
+            />
           </div>
-        )}
-      </div>
 
-      <div className="flex flex-col gap-1">
-        <label htmlFor="length" className="text-sm font-medium text-gray-900">
-          Which pages should the {label} be between?
-        </label>
+          <div className="flex flex-row items-center gap-2">
+            <span className="mr-2 flex-shrink-0 items-center text-sm text-gray-600">
+              End page:
+            </span>
 
-        <span className="text-sm text-gray-600">
-          The shorter the {label}, the more concise it will be and the lesser
-          chances of it being accurate.
-        </span>
+            <input
+              id="length"
+              type="number"
+              min={1}
+              max={file.numPages ?? undefined}
+              value={pageEnd}
+              onChange={(e) => setPageEnd(parseInt(e.target.value))}
+              className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:focus:border-blue-500 dark:focus:ring-blue-500"
+            />
+          </div>
 
-        <div className="flex flex-row items-center gap-2">
-          <span className="flex-shrink-0 items-center text-sm text-gray-600">
-            Start page:
-          </span>
+          {maxNumberOfPagesAllowed < 100 && (
+            <div className="mt-4 rounded-sm bg-red-100 p-2">
+              <span className="text-sm">
+                Free members can only generate {maxNumberOfPagesAllowed} pages.
+              </span>
 
-          <input
-            id="length"
-            type="number"
-            min={1}
-            disabled={!canSelectPages}
-            max={file.numPages ?? undefined}
-            value={pageStart}
-            onChange={(e) => setPageStart(parseInt(e.target.value))}
-            className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:focus:border-blue-500 dark:focus:ring-blue-500"
-          />
+              <UpgradeInline text="Upgrade to a paid plan to unlock all pages." />
+            </div>
+          )}
+
+          {isNumPagesHigh && (
+            <span className="text-sm text-red-800">
+              We recommend keeping the {label} under 25 pages to a more accurate
+              result.
+            </span>
+          )}
+
+          {invalidPages && (
+            <span className="text-sm text-red-800">
+              Please enter valid page numbers.
+            </span>
+          )}
         </div>
-
-        <div className="flex flex-row items-center gap-2">
-          <span className="mr-2 flex-shrink-0 items-center text-sm text-gray-600">
-            End page:
-          </span>
-
-          <input
-            id="length"
-            type="number"
-            min={1}
-            disabled={!canSelectPages}
-            max={file.numPages ?? undefined}
-            value={pageEnd}
-            onChange={(e) => setPageEnd(parseInt(e.target.value))}
-            className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:focus:border-blue-500 dark:focus:ring-blue-500"
-          />
-        </div>
-
-        {isNumPagesHigh && (
-          <span className="text-sm text-red-800">
-            We recommend keeping the {label} under 25 pages to a more accurate
-            result.
-          </span>
-        )}
-
-        {!canSelectPages && (
-          <span className="text-sm text-red-800">
-            We can only detect pages in PDF files. We will process the entire
-            file this time.
-          </span>
-        )}
-      </div>
+      )}
 
       {!!costCoins && !!canProceed && (
         <CostDisplay
