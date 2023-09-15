@@ -35,7 +35,7 @@ export const getDownloadUrl = async (key: string) => {
   const params = {
     Bucket: BUCKET_NAME,
     Key: key,
-    Expires: 60,
+    Expires: 60 * 60 * 24 * 7,
   };
 
   const promise = new Promise<string>((resolve) => {
@@ -176,6 +176,12 @@ const extractAndStoreText = async (
 
     text = t;
     numPages = n;
+
+    if (!t || t.trim().length === 0) {
+      numPages = undefined;
+      const tImage = await transcribeImage(key);
+      text = tImage;
+    }
   } else if (
     file.type ===
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
@@ -202,7 +208,7 @@ const extractAndStoreText = async (
     },
     data: {
       text,
-      hasProcessed: true,
+      hasProcessed: !!text,
       numPages,
     },
   });
@@ -211,6 +217,43 @@ const extractAndStoreText = async (
 };
 
 export const fileRouter = createTRPCRouter({
+  addRatingToSummary: privateProcedure
+
+    .input(
+      z.object({
+        uid: z.string().nonempty(),
+        rating: z.number().int().min(1).max(5),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const summary = await ctx.prisma.summary.findUnique({
+        where: {
+          uid: input.uid,
+          file: {
+            userId: ctx.userId,
+          },
+        },
+      });
+
+      if (!summary) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Summary not found",
+        });
+      }
+
+      const updatedSummary = await ctx.prisma.summary.update({
+        where: {
+          uid: input.uid,
+        },
+        data: {
+          rating: input.rating,
+        },
+      });
+
+      return updatedSummary;
+    }),
+
   onAfterUpload: privateProcedure
     .input(
       z.object({
@@ -218,10 +261,23 @@ export const fileRouter = createTRPCRouter({
         name: z.string().nonempty(),
         type: z.string().nonempty(),
         size: z.number().int().positive(),
+        options: z.object({
+          audioDurationInSeconds: z.number().int().positive().optional(),
+        }),
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const cost = getCostUploadByFileType(input.type);
+      let cost = 0;
+
+      try {
+        cost = getCostUploadByFileType(input.type, input.options);
+      } catch (e) {
+        console.error(e);
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Could not compute cost",
+        });
+      }
 
       await ensureUserHasCoins(ctx.userId, cost);
 
@@ -320,6 +376,7 @@ export const fileRouter = createTRPCRouter({
         file: {
           select: {
             name: true,
+            type: true,
           },
         },
         pageStart: true,

@@ -2,7 +2,7 @@ import type { GetStaticProps, NextPage } from "next";
 import { api } from "~/utils/api";
 import { PageBase } from "../../components/PageBase";
 import DocViewer, { DocViewerRenderers } from "@cyntler/react-doc-viewer";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { OptionPicker, type OptionType } from "~/components/OptionPicker";
 import dayjs from "dayjs";
 import { useSearchParams } from "next/navigation";
@@ -11,6 +11,9 @@ import { SummaryView } from "~/components/SummaryView";
 import { SummarizeModal } from "~/components/SummarizeModal";
 import { ChatModal } from "~/components/ChatModal";
 import { useRouter } from "next/router";
+import { useIsMobile } from "~/hooks/useIsMobile";
+import { DownloadFile } from "~/components/DownloadFile";
+import { logEvent } from "@amplitude/analytics-browser";
 
 dayjs.extend(relativeTime);
 
@@ -21,7 +24,15 @@ export const FilePage: NextPage<{ uid: string }> = ({ uid }) => {
   const summary = searchParams.get("summary");
   const chat = searchParams.get("chat");
 
-  const { data: file } = api.file.getFileByUid.useQuery(uid);
+  const router = useRouter();
+
+  useEffect(() => {
+    logEvent("VIEW_FILE_PAGE", { uid });
+  }, [uid]);
+
+  const { data: file } = api.file.getFileByUid.useQuery(uid, {
+    enabled: !!uid,
+  });
 
   const { data: downloadUrl } = api.file.getDownloadUrl.useQuery(
     {
@@ -37,6 +48,8 @@ export const FilePage: NextPage<{ uid: string }> = ({ uid }) => {
     () => file?.type === "application/pdf" || file?.type.includes("audio/"),
     [file?.type],
   );
+
+  const isMobile = useIsMobile();
 
   const isAudio = useMemo(() => file?.type.includes("audio/"), [file?.type]);
 
@@ -70,9 +83,9 @@ export const FilePage: NextPage<{ uid: string }> = ({ uid }) => {
                 {isAudio && (
                   <div className="flex flex-col gap-3">
                     <span className="text-lg font-light">Transcript</span>
-                    <span className="whitespace-pre-line text-justify">
+                    <div className="whitespace-pre-line rounded-md bg-gray-200 p-2">
                       {file?.text}
-                    </span>
+                    </div>
                   </div>
                 )}
               </div>
@@ -90,13 +103,17 @@ export const FilePage: NextPage<{ uid: string }> = ({ uid }) => {
     isAudio,
   ]);
 
-  const router = useRouter();
-
   return (
     <>
       <PageBase showGoBack>
-        <div className="grid flex-1 grid-cols-1 gap-2 lg:grid-cols-2">
-          {documentViewer}
+        <div className="flex-1 flex-col gap-2 lg:grid lg:grid-cols-2">
+          {!isMobile && documentViewer}
+
+          {isMobile && (
+            <div className="mb-4">
+              <DownloadFile fileKey={file?.key} />
+            </div>
+          )}
 
           <div className="flex flex-col gap-2">
             {summary && <SummaryView summaryUid={summary} />}

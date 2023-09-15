@@ -11,9 +11,18 @@ datasource db {
   relationMode = "prisma"
 }
 
+model User {
+  id                            String   @id
+  stripeSubscriptionId          String?
+  stripeSubscriptionStatus      String?
+  stripeSubscriptionPaidUntil   DateTime?
+  stripeCustomerId              String?
+}
+
 model Coins {
-  userId  String   @id
-  coins   Int
+  userId              String   @id
+  coins               Int
+  lastMonthlyRefill   DateTime?
 }
 
 model File {
@@ -61,6 +70,7 @@ model Summary {
   language  String
   pageStart Int?
   pageEnd   Int?
+  rating    Int?
   file      File     @relation(fields: [fileUid], references: [uid], onDelete: Cascade)
   fileUid   String
 

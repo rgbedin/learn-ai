@@ -1,11 +1,31 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-misused-promises */
 /* eslint-disable react/no-unescaped-entities */
+import { COINS_PER_MONTH, INITIAL_COINS } from "~/utils/constants";
 import { PlanCard } from "./PlanCard";
+import { useIsMobile } from "~/hooks/useIsMobile";
+import { useEffect, useState } from "react";
 
 interface UpsellModalProps {
   onClose: () => void;
 }
 
 export const UpsellModal: React.FC<UpsellModalProps> = ({ onClose }) => {
+  const [showPlans, setShowPlans] = useState<"all" | "monthly" | "yearly">(
+    "all",
+  );
+
+  const isMobile = useIsMobile();
+
+  useEffect(() => {
+    if (isMobile) {
+      setShowPlans("monthly");
+    } else {
+      setShowPlans("all");
+    }
+  }, [isMobile]);
+
   return (
     <>
       <div
@@ -37,64 +57,70 @@ export const UpsellModal: React.FC<UpsellModalProps> = ({ onClose }) => {
             <div className="relative flex-auto px-6 pb-6">
               <section className="container">
                 <div className="flex flex-col gap-2 lg:flex-row">
-                  <div className="hidden lg:flex">
+                  {isMobile && (
+                    <select
+                      id="plans"
+                      value={showPlans}
+                      onChange={(e) => setShowPlans(e.target.value as any)}
+                      className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:focus:border-blue-500 dark:focus:ring-blue-500"
+                    >
+                      <option value="monthly">Monthly</option>
+
+                      <option value="yearly">Annual</option>
+                    </select>
+                  )}
+
+                  <PlanCard
+                    name="Free Plan"
+                    featuresEnabled={[
+                      `${INITIAL_COINS} initial coins on signup`,
+                      "Limit of 3MB per file",
+                      "Summarize up to 5 pages",
+                    ]}
+                    product="FREE"
+                    featuresDisabled={[
+                      "Upload image and audio files",
+                      "Audio file transcripts",
+                      "Detect handwritten notes text",
+                      "Summarize unlimited pages",
+                      "No more coins",
+                    ]}
+                  />
+
+                  {(showPlans === "all" || showPlans === "monthly") && (
                     <PlanCard
-                      name="Free Plan"
+                      name="Montlhy Plan"
                       featuresEnabled={[
-                        "5 initial coins on signup",
-                        "Upload PDF files only",
-                        "Summarize up to 5 pages",
-                      ]}
-                      price={0}
-                      recurring="month"
-                      featuresDisabled={[
-                        "Upload image and audio files",
-                        "Get audio file transcripts",
-                        "Get handwritten notes text",
+                        `${COINS_PER_MONTH} coins per month`,
+                        "Upload files up to 50MB",
+                        "Audio file transcripts",
+                        "Handwritten notes' text",
+                        "30+ languages supported",
                         "Summarize unlimited pages",
-                        "Create unlimited outlines and explanations",
+                        "Get extra coins for $0.10",
                       ]}
+                      product="SUBS_MONTHLY"
+                      featuresDisabled={["Cheapest plan/month"]}
                     />
-                  </div>
+                  )}
 
-                  <PlanCard
-                    name="Montlhy Plan"
-                    featuresEnabled={[
-                      "50 coins per month",
-                      "Upload PDF, image and audio files",
-                      "Summarize unlimited pages",
-                      "Get audio file transcripts",
-                      "Get handwritten notes text",
-                      "Create unlimited outlines and explanations",
-                      "Get extra coins for $0.10",
-                    ]}
-                    price={4.9}
-                    recurring="month"
-                    featuresDisabled={["Cheapest plan/month"]}
-                    onSelect={() => {
-                      console.debug("TODO: subscribe to monthly plan");
-                    }}
-                  />
-
-                  <PlanCard
-                    name="Annual Plan"
-                    featuresEnabled={[
-                      "50 coins per month",
-                      "Upload PDF, image and audio files",
-                      "Summarize unlimited pages",
-                      "Get audio file transcripts",
-                      "Get handwritten notes text",
-                      "Create unlimited outlines and explanations",
-                      "Get extra coins for $0.10",
-                      "Cheapest plan/month",
-                    ]}
-                    price={49}
-                    discountCallout="SAVE 15%"
-                    recurring="year"
-                    onSelect={() => {
-                      console.debug("TODO: subscribe to monthly plan");
-                    }}
-                  />
+                  {(showPlans === "all" || showPlans === "yearly") && (
+                    <PlanCard
+                      name="Annual Plan"
+                      featuresEnabled={[
+                        `${COINS_PER_MONTH} coins per month`,
+                        "Upload files up to 50MB",
+                        "Audio file transcripts",
+                        "Handwritten notes' text",
+                        "30+ languages supported",
+                        "Summarize unlimited pages",
+                        "Get extra coins for $0.10",
+                        "Cheapest plan/month",
+                      ]}
+                      product="SUBS_YEARLY"
+                      discountCallout="SAVE 20%"
+                    />
+                  )}
                 </div>
               </section>
             </div>

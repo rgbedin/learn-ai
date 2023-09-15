@@ -31,7 +31,8 @@ export async function extractPdf(buffer: Buffer) {
           lastY = item.transform[5];
         }
 
-        return `[[page ${currPage}]]\n${text}`;
+        if (text) return `[[page ${currPage}]]\n${text}`;
+        return text;
       });
     },
   });

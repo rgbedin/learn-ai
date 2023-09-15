@@ -1,7 +1,8 @@
 import { useEffect, useMemo } from "react";
 import { AiOutlineQuestionCircle } from "react-icons/ai";
-import { GiTwoCoins } from "react-icons/gi";
 import { api } from "~/utils/api";
+import UpgradeInline from "./UpgradeInline";
+import Image from "next/image";
 
 interface CoinsDisplayProps {
   amount: number;
@@ -11,14 +12,16 @@ interface CoinsDisplayProps {
   onHasEnoughCoins: (hasEnough: boolean) => void;
 }
 
-export default function CoinsDisplay({
+export default function CostDisplay({
   amount,
   label,
   tooltip,
   onHasEnoughCoins,
-  notEnoughCoinsMessage = "You do not have enough coins",
+  notEnoughCoinsMessage = "You do not have",
 }: CoinsDisplayProps) {
-  const { data: coins } = api.coins.getMyCoins.useQuery();
+  const { data: c } = api.coins.getMyCoins.useQuery();
+
+  const coins = useMemo(() => c?.coins, [c]);
 
   const hasEnoughCoins = useMemo(() => {
     if (!coins) return undefined;
@@ -37,7 +40,13 @@ export default function CoinsDisplay({
 
   return (
     <div className={`flex items-center gap-1 rounded-md px-2 py-2 ${bgStyle}`}>
-      <GiTwoCoins size={22} />
+      <Image
+        src="https://public-learn-ai-m93.s3.amazonaws.com/coins.png"
+        width={20}
+        height={20}
+        alt="coins"
+      />
+
       <span className="text-sm">
         {hasEnoughCoins === false ? notEnoughCoinsMessage : label}
       </span>
@@ -57,6 +66,8 @@ export default function CoinsDisplay({
           </span>
         </div>
       )}
+
+      {hasEnoughCoins === false && <UpgradeInline />}
     </div>
   );
 }
