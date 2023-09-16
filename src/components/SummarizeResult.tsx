@@ -140,7 +140,7 @@ export const SummarizeResult: React.FC<SummarizeResult> = ({
             <span className="sr-only">Loading...</span>
           </div>
 
-          <span className="text-lg font-light">{activeStep}</span>
+          <span className="text-center text-lg font-light">{activeStep}</span>
         </div>
       </div>
     </div>

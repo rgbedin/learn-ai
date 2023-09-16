@@ -2,7 +2,7 @@ import { UserButton } from "@clerk/nextjs";
 import Link from "next/link";
 import { useMemo, type PropsWithChildren } from "react";
 import { Inter } from "next/font/google";
-import { BiArrowBack, BiSolidCrown } from "react-icons/bi";
+import { BiArrowBack } from "react-icons/bi";
 import { useRouter } from "next/router";
 import CoinsCounter from "./CoinsCounter";
 import { api } from "~/utils/api";
