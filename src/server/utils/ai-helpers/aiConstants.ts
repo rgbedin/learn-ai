@@ -32,18 +32,18 @@ export const AI_MODELS: Record<string, AiModel> = {
     pricePer1000Input: 0.003,
     pricePer1000Output: 0.004,
   },
-  "gpt-4": {
-    model: "gpt-4",
-    maxTokens: 8192,
-    pricePer1000Input: 0.03,
-    pricePer1000Output: 0.06,
-  },
-  "gpt-4-32k": {
-    model: "gpt-4-32k",
-    maxTokens: 32768,
-    pricePer1000Input: 0.06,
-    pricePer1000Output: 0.12,
-  },
+  // "gpt-4": {
+  //   model: "gpt-4",
+  //   maxTokens: 8192,
+  //   pricePer1000Input: 0.03,
+  //   pricePer1000Output: 0.06,
+  // },
+  // "gpt-4-32k": {
+  //   model: "gpt-4-32k",
+  //   maxTokens: 32768,
+  //   pricePer1000Input: 0.06,
+  //   pricePer1000Output: 0.12,
+  // },
 };
 
 export const DEFAULT_AI_MODEL = AI_MODELS["gpt-3.5-turbo"]!;
