@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { type ChatCompletionMessage } from "openai/resources/chat";
 import { OpenAI } from "openai";
 import { DEFAULT_AI_MODEL } from "./aiConstants";
@@ -36,55 +37,61 @@ export async function callOpenAi(
     model,
   });
 
-  const fileName = `openai-${Date.now()}.txt`;
+  try {
+    const fileName = `openai-${Date.now()}.txt`;
 
-  logger?.logToFile(
-    fileName,
-    `REQUEST:\nMAX_TOKENS=${maxTokens}\nPROMPT=${prompt}\n\n***\n\n`,
-  );
+    logger?.logToFile(
+      fileName,
+      `REQUEST:\nMAX_TOKENS=${maxTokens}\nPROMPT=${prompt}\n\n***\n\n`,
+    );
 
-  const completion = await client.chat.completions.create({
-    messages: messages,
-    model: model?.model ?? DEFAULT_AI_MODEL,
-    temperature: temperature,
-    max_tokens: maxTokens,
-    stop: ["Human:", "AI:"], // The completion can’t change the speaker.
-    top_p: 1,
-    frequency_penalty: 0,
-    presence_penalty: 0,
-  });
-
-  completion.usage?.total_tokens &&
-    console.debug("OpenAI tokens used:", {
-      output: completion.usage?.completion_tokens,
-      input: completion.usage?.prompt_tokens,
+    const completion = await client.chat.completions.create({
+      messages: messages,
+      model: model?.model ?? DEFAULT_AI_MODEL,
+      temperature: temperature,
+      max_tokens: maxTokens,
+      stop: ["Human:", "AI:"], // The completion can’t change the speaker.
+      top_p: 1,
+      frequency_penalty: 0,
+      presence_penalty: 0,
     });
 
-  const inputTokens = completion.usage?.prompt_tokens;
-  const outputTokens = completion.usage?.completion_tokens;
+    completion.usage?.total_tokens &&
+      console.debug("OpenAI tokens used:", {
+        output: completion.usage?.completion_tokens,
+        input: completion.usage?.prompt_tokens,
+      });
 
-  if (
-    !completion.choices[0]?.message.content ||
-    !inputTokens ||
-    !outputTokens
-  ) {
-    throw new Error("Failed to fetch response from OpenAI");
+    const inputTokens = completion.usage?.prompt_tokens;
+    const outputTokens = completion.usage?.completion_tokens;
+
+    if (
+      !completion.choices[0]?.message.content ||
+      !inputTokens ||
+      !outputTokens
+    ) {
+      throw new Error("Failed to fetch response from OpenAI");
+    }
+
+    const estimatedPricing =
+      (inputTokens / 1000) *
+        (model?.pricePer1000Input ?? model.pricePer1000Input) +
+      (outputTokens / 1000) *
+        (model?.pricePer1000Output ?? model.pricePer1000Output);
+
+    logger?.logToFile(
+      fileName,
+      `RESPONSE:\n***\n\n${JSON.stringify(completion, null, 2)}\n\n`,
+    );
+
+    return {
+      message: completion.choices[0].message.content,
+      tokensUsed: completion.usage!.total_tokens,
+      estimatedPricing,
+    };
+  } catch (err: any) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    console.error("Error calling OpenAI", err?.message);
+    throw err;
   }
-
-  const estimatedPricing =
-    (inputTokens / 1000) *
-      (model?.pricePer1000Input ?? model.pricePer1000Input) +
-    (outputTokens / 1000) *
-      (model?.pricePer1000Output ?? model.pricePer1000Output);
-
-  logger?.logToFile(
-    fileName,
-    `RESPONSE:\n***\n\n${JSON.stringify(completion, null, 2)}\n\n`,
-  );
-
-  return {
-    message: completion.choices[0].message.content,
-    tokensUsed: completion.usage!.total_tokens,
-    estimatedPricing,
-  };
 }

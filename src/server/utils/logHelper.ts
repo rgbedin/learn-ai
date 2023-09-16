@@ -7,9 +7,10 @@ export class FileLogger {
 
   constructor(uid: string) {
     this.uid = uid;
-    this.outputPath = path.join("output", `${this.uid}`, `${Date.now()}`);
+    this.outputPath = "";
 
     if (process.env.LOG_SUMMARIES_LOCALLY && !fs.existsSync(this.outputPath)) {
+      this.outputPath = path.join("output", `${this.uid}`, `${Date.now()}`);
       fs.mkdirSync(this.outputPath, { recursive: true });
     }
   }

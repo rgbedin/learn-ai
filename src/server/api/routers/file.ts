@@ -605,7 +605,7 @@ export const fileRouter = createTRPCRouter({
         input.pageEnd,
       );
 
-      console.debug("Extracted text", text);
+      console.debug("Extracted text", text.length, "characters");
 
       const summary = await summarizeText(
         text,
