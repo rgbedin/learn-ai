@@ -36,6 +36,7 @@ model File {
   numPages     Int?
   text         String?    @db.LongText
   hasProcessed Boolean    @default(false)
+  isDigitalContent Boolean?
   summaries    Summary[]
   chats        Chat[]
 }

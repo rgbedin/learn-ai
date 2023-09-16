@@ -19,6 +19,14 @@ export const UpsellModal: React.FC<UpsellModalProps> = ({ onClose }) => {
   const isMobile = useIsMobile();
 
   useEffect(() => {
+    console.debug("is mobile", isMobile);
+  }, [isMobile]);
+
+  useEffect(() => {
+    console.debug("show plans", showPlans);
+  }, [showPlans]);
+
+  useEffect(() => {
     if (isMobile) {
       setShowPlans("monthly");
     } else {
@@ -70,22 +78,24 @@ export const UpsellModal: React.FC<UpsellModalProps> = ({ onClose }) => {
                     </select>
                   )}
 
-                  <PlanCard
-                    name="Free Plan"
-                    featuresEnabled={[
-                      `${INITIAL_COINS} initial coins on signup`,
-                      "Limit of 3MB per file",
-                      "Summarize up to 5 pages",
-                    ]}
-                    product="FREE"
-                    featuresDisabled={[
-                      "Upload image and audio files",
-                      "Audio file transcripts",
-                      "Detect handwritten notes text",
-                      "Summarize unlimited pages",
-                      "No more coins",
-                    ]}
-                  />
+                  {showPlans === "all" && (
+                    <PlanCard
+                      name="Free Plan"
+                      featuresEnabled={[
+                        `${INITIAL_COINS} initial coins on signup`,
+                        "Limit of 3MB per file",
+                        "Summarize up to 5 pages",
+                      ]}
+                      product="FREE"
+                      featuresDisabled={[
+                        "Upload image and audio files",
+                        "Audio file transcripts",
+                        "Detect handwritten notes text",
+                        "Summarize unlimited pages",
+                        "No more coins",
+                      ]}
+                    />
+                  )}
 
                   {(showPlans === "all" || showPlans === "monthly") && (
                     <PlanCard

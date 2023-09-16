@@ -30,9 +30,9 @@ export const UploadCard: React.FC = () => {
   }, [isMobile, showStartHere]);
 
   return (
-    <div className="relative">
+    <div className={`relative flex ${sizeStyle}`}>
       <div
-        className={`flex flex-col ${sizeStyle} cursor-pointer items-center justify-center border-[1px] border-dashed border-gray-400 bg-white text-gray-200 transition hover:text-gray-300`}
+        className={`flex w-full cursor-pointer flex-col items-center justify-center border-[1px] border-dashed border-gray-400 bg-white text-gray-200 transition hover:text-gray-300`}
         onClick={logEventWrapper(() => setShowModal(true), "CLICK_UPLOAD_FILE")}
       >
         <BsFileArrowUp size={70} className="mx-auto mb-2 mt-8" />

@@ -95,7 +95,7 @@ export const SummaryCard: React.FC<SummaryCard> = ({
 
       {fixedWidth && (
         <>
-          <span className="line-clamp-1 text-xs font-semibold uppercase text-gray-500">
+          <span className="line-clamp-1 flex-shrink-0 text-xs font-semibold uppercase text-gray-500">
             {typeLabel}
           </span>
         </>

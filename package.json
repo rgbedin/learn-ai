@@ -29,6 +29,7 @@
     "@types/numeric": "^1.2.3",
     "aws-sdk": "^2.1450.0",
     "axios": "^1.5.0",
+    "daisyui": "^3.7.4",
     "dayjs": "^1.11.9",
     "faiss-node": "^0.4.1",
     "framer-motion": "^10.16.3",

@@ -9,7 +9,7 @@ export default function RecentSummaries() {
   }
 
   return (
-    <div className="flex gap-1 overflow-x-hidden">
+    <div className="flex gap-1 overflow-x-auto">
       {recentSummaries.map((s) => (
         <SummaryCard
           key={s.uid}
