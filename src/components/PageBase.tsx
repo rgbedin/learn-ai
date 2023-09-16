@@ -43,8 +43,8 @@ export const PageBase: React.FC<PageBaseProps> = ({ children, showGoBack }) => {
 
   return (
     <main className={theFont.className}>
-      <div className="flex h-auto min-h-screen flex-1 flex-col items-stretch  bg-gray-100 bg-opacity-90">
-        <div className="z-10 flex h-[60px] flex-shrink-0 items-center justify-between border-b-[1px] border-gray-200 bg-white p-4">
+      <div className="flex h-auto min-h-screen flex-1 flex-col items-stretch bg-gray-50">
+        <div className="z-10 flex h-[60px] flex-shrink-0 items-center justify-between border-b-[1px] border-gray-200 bg-[#cbcbcb] bg-opacity-20 p-4">
           <div className="flex flex-1 items-center gap-2">
             <Image
               src="https://public-learn-ai-m93.s3.amazonaws.com/resumito_black.png"

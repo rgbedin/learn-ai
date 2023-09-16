@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { api } from "~/utils/api";
 import { logEvent } from "~/hooks/useAmplitudeInit";
+import Header from "./Header";
 
 interface TranscriptView {
   fileUid: string;
@@ -15,11 +16,9 @@ export const TranscriptView: React.FC<TranscriptView> = ({ fileUid }) => {
 
   return (
     <div className="relative flex h-full flex-col gap-6">
-      <span className="text-md w-fit rounded-sm bg-[#003049] p-1 px-2 font-light text-white">
-        Transcript
-      </span>
+      <Header>Transcript</Header>
 
-      <div className="whitespace-pre-line rounded-md bg-gray-200 p-2">
+      <div className="whitespace-pre-line rounded-md bg-[#cbcbcb] bg-opacity-20 p-2">
         {file?.text}
       </div>
     </div>
