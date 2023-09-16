@@ -7,6 +7,7 @@ import { useRouter } from "next/router";
 import CoinsCounter from "./CoinsCounter";
 import { api } from "~/utils/api";
 import Image from "next/image";
+import LoadingOverlay from "./LoadingOverlay";
 
 const theFont = Inter({ subsets: ["latin"] });
 
@@ -73,6 +74,8 @@ export const PageBase: React.FC<PageBaseProps> = ({ children, showGoBack }) => {
           {children}
         </div>
       </div>
+
+      <LoadingOverlay />
     </main>
   );
 };
