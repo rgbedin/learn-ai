@@ -33,8 +33,12 @@ export const ensureUserHasCoins = async (userId: string, amount: number) => {
   }
 };
 
-export const deductCoins = async (userId: string, amount: number) => {
-  await prisma.coins.update({
+export const deductCoins = async (
+  userId: string,
+  amount: number,
+  prismaClient = prisma,
+) => {
+  await prismaClient.coins.update({
     where: {
       userId,
     },

@@ -5,6 +5,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 // eslint-disable-file @typescript-eslint/no-unsafe-member-access
 import { z } from "zod";
+import { createId } from "@paralleldrive/cuid2";
 import { createTRPCRouter, privateProcedure } from "~/server/api/trpc";
 import AWS from "aws-sdk";
 import * as mammoth from "mammoth";
@@ -13,8 +14,6 @@ import { prisma } from "~/server/db";
 import axios from "axios";
 import { SummaryType } from "@prisma/client";
 import { extractPdf } from "~/server/utils/extractPdf";
-import { extractPagesFromFileText } from "~/server/utils/extractPagesFromFileText";
-import { summarizeText } from "~/server/utils/ai";
 import {
   getCostBySummaryTypeAndPages,
   getCostUploadByFileType,
@@ -599,34 +598,26 @@ export const fileRouter = createTRPCRouter({
         });
       }
 
-      const text = extractPagesFromFileText(
-        file.text,
-        input.pageStart,
-        input.pageEnd,
-      );
+      const summaryUid = createId();
 
-      console.debug("Extracted text", text.length, "characters");
-
-      const summary = await summarizeText(
-        text,
-        file.name,
-        input.languageCode,
-        input.type,
-      );
-
-      const s = await prisma.summary.create({
-        data: {
-          fileUid: file.uid,
-          language: input.languageCode,
-          text: summary,
+      void axios.post(
+        `${process.env.EDGE_FUNCTION_BASE_URL}/summarize`,
+        {
+          summaryUid,
+          fileKey: file.key,
+          languageCode: input.languageCode,
+          summaryType: input.type,
           pageStart: input.pageStart,
           pageEnd: input.pageEnd,
-          type: input.type,
+          cost,
         },
-      });
+        {
+          headers: {
+            authorization: process.env.INTERNAL_SECRET,
+          },
+        },
+      );
 
-      await deductCoins(ctx.userId, cost);
-
-      return s;
+      return { summaryUid };
     }),
 });
