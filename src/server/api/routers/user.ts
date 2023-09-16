@@ -31,7 +31,7 @@ export const getUserSubscriptionStatus = async (userId: string) => {
     status: user.stripeSubscriptionStatus,
     paidUntil: user.stripeSubscriptionPaidUntil,
     isValid:
-      user.stripeSubscriptionPaidUntil &&
+      !!user.stripeSubscriptionPaidUntil &&
       dayjs(user.stripeSubscriptionPaidUntil).isAfter(new Date()) &&
       user.stripeSubscriptionStatus !== "canceled",
   };
