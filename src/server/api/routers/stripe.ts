@@ -122,7 +122,7 @@ export const handleStripeCheckoutSessionCompleted = async ({
         },
       });
     } else {
-      throw new Error("Unknown product");
+      console.warn("Unknown product", product);
     }
   }
 };
