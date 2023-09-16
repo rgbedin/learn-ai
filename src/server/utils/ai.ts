@@ -28,13 +28,12 @@ const getSummarizePrompt = (languageCode: string) => {
   return `Summarize the text.
     Give preference to more paragraphs over fewer paragraphs, and make them as short as possible.
     Give the summary a short title.
-
     Give your reply in the language ${language?.language} (${language?.code}). 
-    Follow the given pattern for the reply:
+    Follow strictly the given pattern for the reply, using HTML for formatting:
 
-    Section: [title]
-
-    [summary]`;
+    <b>Section:</b> [title]<br>
+    <b>Summary:</b> <span>[summary]</span><br>
+`;
 };
 
 const getOutlinePrompt = (languageCode: string) => {
@@ -44,24 +43,21 @@ const getOutlinePrompt = (languageCode: string) => {
     Give the outline a short title and provide bullet points for the key parts of the text.
     Use a hierarchical structure for the outline.
     Give your reply in the language ${language?.language} (${language?.code}). 
-    Follow the given pattern for the reply:
+    Output multiple sections and provide a title for each section, following strictly the format below with HTML for formatting:
 
-    Section: [title]
-
-    [outline]`;
+    <b>Section:</b> [title]<br>
+     <span>[outline]</span><br>`;
 };
 
 const getExplainPrompt = (languageCode: string) => {
   const language = getInfoForLanguage(languageCode);
 
   return `Explain this text like I am 12 years old.
-    Give preference to more paragraphs over fewer paragraphs, and make them as short as possible.
     Give your reply in the language ${language?.language} (${language?.code}). 
-    Follow the given pattern for the reply:
+    Follow strictly the given pattern for the reply, using HTML for formatting:
 
-    Section: [title]
-
-    [explanation]`;
+    <b>Section:</b> [title]<br>
+    <span>[explanation]</span><br>`;
 };
 
 const getPrompt = (type: SummaryType, languageCode: string) => {

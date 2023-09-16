@@ -78,7 +78,7 @@ export const SummaryView: React.FC<SummaryView> = ({ summaryUid }) => {
       {summary && (
         <>
           <div className="whitespace-pre-line rounded-md bg-[#cbcbcb] bg-opacity-20 p-2">
-            {summary.text}
+            <div dangerouslySetInnerHTML={{ __html: summary.text }} />
           </div>
 
           <div className="mt-1 flex flex-col">
