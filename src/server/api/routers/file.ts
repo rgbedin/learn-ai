@@ -170,14 +170,17 @@ const extractAndStoreText = async (
 
   let text = null;
   let numPages: number | undefined = undefined;
+  let isDigitalContent = false;
 
   if (file.type === "application/pdf") {
     const { text: t, numPages: n } = await extractPdf(await downloadAsBuffer());
 
     text = t;
     numPages = n;
+    isDigitalContent = true;
 
     if (!t || t.trim().length === 0) {
+      isDigitalContent = false;
       numPages = undefined;
       const tImage = await transcribeImage(key);
       text = tImage;
@@ -189,6 +192,8 @@ const extractAndStoreText = async (
     const result = await mammoth.extractRawText({
       buffer: await downloadAsBuffer(),
     });
+
+    isDigitalContent = true;
 
     text = result.value;
   } else if (file.type.includes("image")) {
@@ -209,6 +214,7 @@ const extractAndStoreText = async (
     data: {
       text,
       hasProcessed: !!text,
+      isDigitalContent,
       numPages,
     },
   });

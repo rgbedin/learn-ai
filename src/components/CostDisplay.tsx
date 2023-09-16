@@ -39,7 +39,9 @@ export default function CostDisplay({
   }, [hasEnoughCoins, onHasEnoughCoins]);
 
   return (
-    <div className={`flex items-center gap-1 rounded-md px-2 py-2 ${bgStyle}`}>
+    <div
+      className={`flex flex-wrap items-center gap-1 rounded-md px-2 py-2 ${bgStyle}`}
+    >
       <Image
         src="https://public-learn-ai-m93.s3.amazonaws.com/coins.png"
         width={20}
@@ -47,7 +49,7 @@ export default function CostDisplay({
         alt="coins"
       />
 
-      <span className="text-sm">
+      <span className="flex-shrink-0 text-sm">
         {hasEnoughCoins === false ? notEnoughCoinsMessage : label}
       </span>
 
@@ -56,14 +58,8 @@ export default function CostDisplay({
       <span className="text-sm">coin{amount > 1 ? "s" : ""}</span>
 
       {tooltip && (
-        <div className="group">
+        <div className="tooltip" data-tip={tooltip}>
           <AiOutlineQuestionCircle size={16} className="text-gray-800" />
-          <span
-            className="absolute rounded-md bg-gray-800 p-2 
-    text-sm text-gray-100 opacity-0 transition-opacity group-hover:opacity-100"
-          >
-            {tooltip}
-          </span>
         </div>
       )}
 

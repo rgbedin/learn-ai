@@ -21,10 +21,10 @@ export const DownloadFile: React.FC<DownloadFileProps> = ({ fileKey }) => {
       type="button"
       href={downloadUrl}
       download
-      className="inline-flex w-full justify-center rounded-lg border-2 border-[#003049] bg-white px-5 py-2.5 text-center text-sm font-medium text-[#003049] focus:outline-none focus:ring-4 focus:ring-blue-200 dark:focus:ring-blue-900"
+      className="inline-flex w-full items-center justify-center rounded-lg border-[1px] border-[#003049] bg-white px-5 py-2.5 text-center text-sm font-medium text-[#003049] focus:outline-none focus:ring-4 focus:ring-blue-200 dark:focus:ring-blue-900"
     >
-      <AiOutlineCloudDownload size={20} className="mr-2" />
-      Download
+      <AiOutlineCloudDownload size={24} className="mr-2" />
+      Download File
     </a>
   );
 };

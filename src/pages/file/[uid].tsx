@@ -14,6 +14,7 @@ import { useRouter } from "next/router";
 import { useIsMobile } from "~/hooks/useIsMobile";
 import { DownloadFile } from "~/components/DownloadFile";
 import { logEvent } from "@amplitude/analytics-browser";
+import { TranscriptView } from "~/components/TranscriptView";
 
 dayjs.extend(relativeTime);
 
@@ -23,6 +24,9 @@ export const FilePage: NextPage<{ uid: string }> = ({ uid }) => {
   const searchParams = useSearchParams();
   const summary = searchParams.get("summary");
   const chat = searchParams.get("chat");
+  const transcript = searchParams.get("transcript");
+
+  const isInRootPage = !summary && !chat && !transcript;
 
   const router = useRouter();
 
@@ -51,8 +55,6 @@ export const FilePage: NextPage<{ uid: string }> = ({ uid }) => {
 
   const isMobile = useIsMobile();
 
-  const isAudio = useMemo(() => file?.type.includes("audio/"), [file?.type]);
-
   const documentViewer = useMemo(() => {
     return (
       <>
@@ -77,31 +79,18 @@ export const FilePage: NextPage<{ uid: string }> = ({ uid }) => {
                 <object
                   data={downloadUrl}
                   type={file?.type}
-                  height={isAudio ? undefined : "100%"}
+                  height={"100%"}
+                  style={{
+                    minHeight: "70vh",
+                  }}
                 />
-
-                {isAudio && (
-                  <div className="flex flex-col gap-3">
-                    <span className="text-lg font-light">Transcript</span>
-                    <div className="whitespace-pre-line rounded-md bg-gray-200 p-2">
-                      {file?.text}
-                    </div>
-                  </div>
-                )}
               </div>
             )}
           </>
         )}
       </>
     );
-  }, [
-    downloadUrl,
-    renderAsObject,
-    file?.type,
-    file?.name,
-    file?.text,
-    isAudio,
-  ]);
+  }, [downloadUrl, renderAsObject, file?.type, file?.name]);
 
   return (
     <>
@@ -109,7 +98,7 @@ export const FilePage: NextPage<{ uid: string }> = ({ uid }) => {
         <div className="flex-1 flex-col gap-2 lg:grid lg:grid-cols-2">
           {!isMobile && documentViewer}
 
-          {isMobile && (
+          {isMobile && isInRootPage && (
             <div className="mb-4">
               <DownloadFile fileKey={file?.key} />
             </div>
@@ -117,6 +106,8 @@ export const FilePage: NextPage<{ uid: string }> = ({ uid }) => {
 
           <div className="flex flex-col gap-2">
             {summary && <SummaryView summaryUid={summary} />}
+
+            {transcript && <TranscriptView fileUid={uid} />}
 
             {chat && file && (
               <ChatModal
@@ -128,20 +119,25 @@ export const FilePage: NextPage<{ uid: string }> = ({ uid }) => {
               />
             )}
 
-            {!summary && (
+            {isInRootPage && (
               <>
-                <OptionPicker
-                  fileUid={uid}
-                  onSelectOption={setOptionSelected}
-                />
-
-                {!!optionSelected && optionSelected !== "chat" && file && (
-                  <SummarizeModal
-                    type={optionSelected}
-                    file={file}
-                    onClose={() => setOptionSelected(undefined)}
+                <div className="flex flex-col gap-2">
+                  <OptionPicker
+                    fileUid={uid}
+                    onSelectOption={setOptionSelected}
                   />
-                )}
+                </div>
+
+                {!!optionSelected &&
+                  optionSelected !== "chat" &&
+                  optionSelected !== "transcript" &&
+                  file && (
+                    <SummarizeModal
+                      type={optionSelected}
+                      file={file}
+                      onClose={() => setOptionSelected(undefined)}
+                    />
+                  )}
 
                 {optionSelected === "chat" && file && (
                   <ChatModal

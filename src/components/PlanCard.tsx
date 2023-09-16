@@ -6,6 +6,7 @@
 import { useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { logEvent } from "~/hooks/useAmplitudeInit";
+import { useIsMobile } from "~/hooks/useIsMobile";
 import { api } from "~/utils/api";
 import getStripe from "~/utils/getStripe";
 
@@ -97,9 +98,13 @@ export const PlanCard: React.FC<PlanCardProps> = ({
     [price],
   );
 
+  const isMobile = useIsMobile();
+
+  const widthStyle = useMemo(() => (isMobile ? "w-full" : "w-1/3"), [isMobile]);
+
   return (
     <div
-      className={`relative w-1/3 max-w-sm rounded-lg border border-gray-200 ${bgStyle} p-4 shadow dark:border-gray-700 dark:bg-gray-800 sm:p-4`}
+      className={`relative ${widthStyle} max-w-sm rounded-lg border border-gray-200 ${bgStyle} p-4 shadow dark:border-gray-700 dark:bg-gray-800 sm:p-4`}
     >
       <h5 className="mb-4 text-xl font-medium text-gray-500 dark:text-gray-400">
         {name}

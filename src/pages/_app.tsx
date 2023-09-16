@@ -7,6 +7,7 @@ import { Toaster } from "react-hot-toast";
 import "~/styles/globals.css";
 import NProgress from "nprogress";
 import Router from "next/router";
+import { useEffect } from "react";
 
 NProgress.configure({ showSpinner: false });
 
@@ -17,6 +18,10 @@ Router.events.on("routeChangeComplete", () => NProgress.done());
 Router.events.on("routeChangeError", () => NProgress.done());
 
 const MyApp: AppType = ({ Component, pageProps }) => {
+  useEffect(() => {
+    localStorage.theme = "light";
+  }, []);
+
   return (
     <ClerkProvider {...pageProps}>
       <Head>

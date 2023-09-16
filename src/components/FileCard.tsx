@@ -13,7 +13,7 @@ import { useIsMobile } from "~/hooks/useIsMobile";
 dayjs.extend(relativeTime);
 
 interface FileCardProps {
-  file: Omit<File, "summary" | "text" | "outline">;
+  file: Omit<File, "summary" | "text" | "outline" | "isDigitalContent">;
   onClick: () => void;
 }
 
@@ -74,8 +74,8 @@ export const FileCard: React.FC<FileCardProps> = ({ file, onClick }) => {
   return (
     <div
       onClick={onClickWrapper}
-      onMouseEnter={() => setIsHovering(true)}
-      onMouseLeave={() => setIsHovering(false)}
+      onMouseEnter={isMobile ? undefined : () => setIsHovering(true)}
+      onMouseLeave={isMobile ? undefined : () => setIsHovering(false)}
       className={`relative flex ${sizeStyle} cursor-pointer flex-col items-center justify-between gap-4 border-[1px] border-gray-200 bg-white px-4 pb-4 pt-6 transition hover:translate-y-[-3px]`}
     >
       {!isLoading && (

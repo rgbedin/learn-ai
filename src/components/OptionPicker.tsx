@@ -5,8 +5,9 @@ import { SummaryCard } from "./SummaryCard";
 import { CreateNew } from "./CreateNewCard";
 import { Transition } from "@headlessui/react";
 import { type SummaryType } from "@prisma/client";
+import { useRouter } from "next/router";
 
-export type OptionType = SummaryType | "chat";
+export type OptionType = SummaryType | "chat" | "transcript";
 
 interface OptionPickerProps {
   fileUid: string;
@@ -34,8 +35,10 @@ export const OptionPicker: React.FC<OptionPickerProps> = ({
     type: "EXPLAIN",
   });
 
+  const router = useRouter();
+
   return (
-    <div className="relative flex h-full flex-col gap-2">
+    <div className="relative flex  flex-col gap-2">
       <div className="flex flex-col gap-1">
         <OptionCard
           title="Summarize Content"
@@ -124,6 +127,18 @@ export const OptionPicker: React.FC<OptionPickerProps> = ({
             <SummaryCard key={exp.uid} summary={exp} />
           ))}
         </Transition>
+      </div>
+
+      <div className="flex flex-col gap-1">
+        <OptionCard
+          title="Get a Transcript"
+          isSelected={optionSelected === "transcript"}
+          onClick={() => {
+            void router.push(`/file/${fileUid}?transcript=true`);
+          }}
+          description="Get a transcript of the file. Useful for audio files and handwritten notes."
+          imageUrl="https://public-learn-ai-m93.s3.amazonaws.com/transcript-removebg-preview.png"
+        />
       </div>
     </div>
   );

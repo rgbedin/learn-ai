@@ -184,8 +184,8 @@ export const SummarizeOptions: React.FC<SummarizeOptions> = ({
             />
           </div>
 
-          {maxNumberOfPagesAllowed < 100 && (
-            <div className="mt-4 rounded-sm bg-red-100 p-2">
+          {hasValidSub === false && (
+            <div className="mt-2 rounded-sm bg-red-100 p-2">
               <span className="text-sm">
                 Free members can only generate {maxNumberOfPagesAllowed} pages.
               </span>
