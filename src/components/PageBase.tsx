@@ -8,6 +8,7 @@ import CoinsCounter from "./CoinsCounter";
 import { api } from "~/utils/api";
 import Image from "next/image";
 import LoadingOverlay from "./LoadingOverlay";
+import toast from "react-hot-toast";
 
 const theFont = Inter({ subsets: ["latin"] });
 
@@ -20,7 +21,25 @@ export const PageBase: React.FC<PageBaseProps> = ({ children, showGoBack }) => {
 
   const isValid = useMemo(() => subsData?.isValid, [subsData]);
 
+  const getBillingPortalUrl = api.stripe.generateBillingPortalUrl.useMutation();
+
   const router = useRouter();
+
+  const onManageSubs = () => {
+    getBillingPortalUrl.mutate(
+      { origin: window.location.origin },
+      {
+        onSuccess: (data) => {
+          const url = data.billingPortalUrl;
+          window.open(url, "_blank");
+        },
+        onError: (err) => {
+          console.error(err);
+          toast.error("Error opening billing portal");
+        },
+      },
+    );
+  };
 
   return (
     <main className={theFont.className}>
@@ -47,7 +66,26 @@ export const PageBase: React.FC<PageBaseProps> = ({ children, showGoBack }) => {
                   height={20}
                   alt="Premium"
                 />
-                <span className="text-xs uppercase">Premium</span>
+
+                <div className="flex-none">
+                  <ul className="menu menu-horizontal p-0">
+                    <li>
+                      <details>
+                        <summary className="p-0 pl-1 pr-2">Premium</summary>
+                        <ul className="bg-base-100">
+                          <li>
+                            <a onClick={onManageSubs}>
+                              {getBillingPortalUrl.isLoading ? (
+                                <span className="loading loading-spinner loading-xs"></span>
+                              ) : null}{" "}
+                              Manage
+                            </a>
+                          </li>
+                        </ul>
+                      </details>
+                    </li>
+                  </ul>
+                </div>
               </div>
             )}
 
