@@ -9,12 +9,9 @@ import { useIsMobile } from "~/hooks/useIsMobile";
 import { useEffect } from "react";
 import useAmplitudeInit, { logEvent } from "~/hooks/useAmplitudeInit";
 import { useUser } from "@clerk/nextjs";
-import LoadingOverlay from "~/components/LoadingOverlay";
 
 export default function Home() {
   const { data: recentSummaries } = api.file.getRecentSummaries.useQuery();
-
-  const { isLoading } = api.user.getSubscriptionStatus.useQuery();
 
   const isMobile = useIsMobile();
 
@@ -62,8 +59,6 @@ export default function Home() {
           <SupportCard />
         </div>
       )}
-
-      {isLoading && <LoadingOverlay />}
     </PageBase>
   );
 }
