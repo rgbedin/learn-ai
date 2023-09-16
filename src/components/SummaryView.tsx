@@ -4,6 +4,7 @@ import { getInfoForLanguage } from "~/utils/getInfoForLanguage";
 import { Rating } from "react-simple-star-rating";
 import toast from "react-hot-toast";
 import { logEvent } from "~/hooks/useAmplitudeInit";
+import Header from "./Header";
 
 interface SummaryView {
   summaryUid: string;
@@ -56,9 +57,7 @@ export const SummaryView: React.FC<SummaryView> = ({ summaryUid }) => {
 
   return (
     <div className="relative flex h-full flex-col gap-6">
-      <span className="text-md w-fit rounded-sm bg-[#003049] p-1 px-2 font-light text-white">
-        {!summary ? "Loading..." : label}
-      </span>
+      <Header>{!summary ? "Loading..." : label}</Header>
 
       {summary && (
         <div className="flex flex-col gap-1">
@@ -78,7 +77,7 @@ export const SummaryView: React.FC<SummaryView> = ({ summaryUid }) => {
 
       {summary && (
         <>
-          <div className="whitespace-pre-line rounded-md bg-gray-200 p-2">
+          <div className="whitespace-pre-line rounded-md bg-[#cbcbcb] bg-opacity-20 p-2">
             {summary.text}
           </div>
 

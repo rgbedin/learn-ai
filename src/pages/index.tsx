@@ -9,6 +9,7 @@ import { useIsMobile } from "~/hooks/useIsMobile";
 import { useEffect } from "react";
 import useAmplitudeInit, { logEvent } from "~/hooks/useAmplitudeInit";
 import { useUser } from "@clerk/nextjs";
+import Header from "~/components/Header";
 
 export default function Home() {
   const { data: recentSummaries } = api.file.getRecentSummaries.useQuery();
@@ -31,9 +32,7 @@ export default function Home() {
         {!!recentSummaries && recentSummaries.length > 0 && (
           <>
             <div className="flex flex-col gap-2">
-              <span className="text-md -ml-3 w-fit rounded-sm bg-[#003049] p-1 pl-4 pr-2 font-light text-white">
-                Latest Generations
-              </span>
+              <Header>Latest Generations</Header>
               <RecentSummaries />
             </div>
 
@@ -42,9 +41,9 @@ export default function Home() {
         )}
 
         <div className="flex flex-col gap-2">
-          <span className="-ml-3 w-fit rounded-sm bg-[#003049] p-1 pl-4 pr-2 text-lg font-light text-white">
+          <Header imageSrc="https://public-learn-ai-m93.s3.amazonaws.com/books.png">
             Your Files
-          </span>
+          </Header>
 
           <div className="flex flex-wrap gap-4">
             <UploadCard />
