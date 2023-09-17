@@ -110,11 +110,13 @@ export const handleStripeCheckoutSessionCompleted = async ({
   console.info("Line items", lineItems);
 
   for (const li of lineItems) {
-    const product = li.price?.product as Stripe.Product;
+    const product = li.price?.product as Stripe.Product | string;
+
+    const productId = typeof product === "string" ? product : product.id;
 
     console.info("Product", product);
 
-    if (product.id === process.env.STRIPE_COIN_PRODUCT_ID) {
+    if (productId === process.env.STRIPE_COIN_PRODUCT_ID) {
       const quantity = li.quantity ?? 1;
 
       console.info("Quantity", quantity);

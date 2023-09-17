@@ -3,8 +3,9 @@ import { api } from "~/utils/api";
 
 export default function LoadingOverlay() {
   const { data: subsInfo } = api.user.getSubscriptionStatus.useQuery();
+  const { data: c } = api.coins.getMyCoins.useQuery();
 
-  if (!!subsInfo) return null;
+  if (!!subsInfo && !!c) return null;
 
   return (
     <div className="fixed bottom-0 left-0 right-0 top-0 z-50 flex h-full w-full flex-col items-center justify-center gap-2 bg-gray-500 bg-opacity-80">
