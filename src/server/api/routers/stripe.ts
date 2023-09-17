@@ -99,17 +99,25 @@ export const handleStripeCheckoutSessionCompleted = async ({
   const session = event.data.object as Stripe.Checkout.Session;
   const userId = session.metadata?.userId;
 
+  console.info("Handling checkout session completed", session);
+
   const lineItemsResp = await stripe.checkout.sessions.listLineItems(
     session.id,
   );
 
   const lineItems = lineItemsResp.data;
 
+  console.info("Line items", lineItems);
+
   for (const li of lineItems) {
     const product = li.price?.product as Stripe.Product;
 
+    console.info("Product", product);
+
     if (product.id === process.env.STRIPE_COIN_PRODUCT_ID) {
       const quantity = li.quantity ?? 1;
+
+      console.info("Quantity", quantity);
 
       await prisma.coins.update({
         where: {
