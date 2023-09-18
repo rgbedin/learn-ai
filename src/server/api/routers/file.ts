@@ -326,11 +326,13 @@ export const fileRouter = createTRPCRouter({
     }),
 
   getFileByUid: privateProcedure
-    .input(z.string().nonempty())
+    .input(
+      z.object({ uid: z.string().nonempty(), getText: z.boolean().optional() }),
+    )
     .query(async ({ ctx, input }) => {
       const file = await ctx.prisma.file.findUnique({
         where: {
-          uid: input,
+          uid: input.uid,
           userId: ctx.userId,
         },
       });
@@ -346,6 +348,10 @@ export const fileRouter = createTRPCRouter({
 
       if (file.type.includes("image")) {
         previewUrl = await getDownloadUrl(file.key);
+      }
+
+      if (!input.getText) {
+        file.text = "";
       }
 
       return { ...file, previewUrl };

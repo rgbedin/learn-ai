@@ -8,7 +8,10 @@ interface TranscriptView {
 }
 
 export const TranscriptView: React.FC<TranscriptView> = ({ fileUid }) => {
-  const { data: file } = api.file.getFileByUid.useQuery(fileUid);
+  const { data: file } = api.file.getFileByUid.useQuery({
+    uid: fileUid,
+    getText: true,
+  });
 
   useEffect(() => {
     logEvent("VIEW_TRANSCRIPT", { fileUid });

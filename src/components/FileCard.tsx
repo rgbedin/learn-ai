@@ -22,11 +22,17 @@ export const FileCard: React.FC<FileCardProps> = ({ file, onClick }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [newName, setNewName] = useState(file.name);
 
-  const { data } = api.file.getFileByUid.useQuery(file.uid, {
-    refetchInterval(data) {
-      return data?.hasProcessed ? false : 2000;
+  const { data } = api.file.getFileByUid.useQuery(
+    {
+      uid: file.uid,
+      getText: false,
     },
-  });
+    {
+      refetchInterval(data) {
+        return data?.hasProcessed ? false : 2000;
+      },
+    },
+  );
 
   const updateFile = api.file.updateFile.useMutation();
 
