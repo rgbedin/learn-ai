@@ -34,9 +34,15 @@ export const FilePage: NextPage<{ uid: string }> = ({ uid }) => {
     logEvent("VIEW_FILE_PAGE", { uid });
   }, [uid]);
 
-  const { data: file } = api.file.getFileByUid.useQuery(uid, {
-    enabled: !!uid,
-  });
+  const { data: file } = api.file.getFileByUid.useQuery(
+    {
+      uid,
+      getText: false,
+    },
+    {
+      enabled: !!uid,
+    },
+  );
 
   const { data: downloadUrl } = api.file.getDownloadUrl.useQuery(
     {

@@ -46,7 +46,7 @@ const getOutlinePrompt = (languageCode: string) => {
     Output multiple sections and provide a title for each section, following strictly the format below with HTML for formatting:
 
     <b>Section:</b> [title]<br>
-     <span>[outline]</span><br>`;
+    <span>[outline]</span><br>`;
 };
 
 const getExplainPrompt = (languageCode: string) => {
