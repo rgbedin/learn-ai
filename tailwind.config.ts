@@ -12,6 +12,9 @@ export default {
       },
     },
   },
+  daisyui: {
+    darkTheme: false,
+  },
   plugins: [require("daisyui")],
   darkMode: "class",
 } satisfies Config;
