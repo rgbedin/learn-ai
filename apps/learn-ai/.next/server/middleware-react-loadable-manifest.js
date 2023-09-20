@@ -1,0 +1,1 @@
+self.__REACT_LOADABLE_MANIFEST="{\"../hooks/useAmplitudeInit.ts -> @amplitude/analytics-browser\":{\"id\":\"../hooks/useAmplitudeInit.ts -> @amplitude/analytics-browser\",\"files\":[]}}"

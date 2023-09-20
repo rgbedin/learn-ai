@@ -42,3 +42,7 @@ yarn-error.log*
 *.tsbuildinfo
 
 output
+
+.turbo
+
+**/node_modules

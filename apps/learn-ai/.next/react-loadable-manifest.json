@@ -1,0 +1,6 @@
+{
+  "../hooks/useAmplitudeInit.ts -> @amplitude/analytics-browser": {
+    "id": "../hooks/useAmplitudeInit.ts -> @amplitude/analytics-browser",
+    "files": []
+  }
+}
