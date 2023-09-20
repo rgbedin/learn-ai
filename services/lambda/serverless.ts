@@ -2,10 +2,16 @@ import type { AWS } from '@serverless/typescript';
 
 import { functions } from '@functions/index';
 
+import { dotenvLoad } from 'dotenv-mono';
+
+const dotenv = dotenvLoad();
+
+console.debug('Loaded env', dotenv.env);
+
 const serverlessConfiguration: AWS = {
   service: 'lamda',
   frameworkVersion: '3.35.2',
-  plugins: ['serverless-esbuild', 'serverless-offline'],
+  plugins: ['serverless-esbuild', 'serverless-offline', 'serverless-dotenv-plugin'],
   provider: {
     name: 'aws',
     runtime: 'nodejs18.x',
@@ -30,6 +36,12 @@ const serverlessConfiguration: AWS = {
       define: { 'require.resolve': undefined },
       platform: 'node',
       concurrency: 10,
+    },
+    'serverless-offline': {
+      httpPort: 3005,
+    },
+    dotenv: {
+      dotenvParser: 'dotenv.config.js',
     },
   },
 };

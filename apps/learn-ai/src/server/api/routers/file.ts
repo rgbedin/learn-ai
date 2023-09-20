@@ -6,9 +6,8 @@ import * as mammoth from "mammoth";
 import { TRPCError } from "@trpc/server";
 import { prisma } from "database/src/client";
 import axios from "axios";
+import { createId } from "@paralleldrive/cuid2";
 import { extractPdf } from "~/server/utils/extractPdf";
-import { extractPagesFromFileText } from "~/server/utils/extractPagesFromFileText";
-import { summarizeText } from "~/server/utils/ai";
 import {
   getCostBySummaryTypeAndPages,
   getCostUploadByFileType,
@@ -598,34 +597,32 @@ export const fileRouter = createTRPCRouter({
         });
       }
 
-      const text = extractPagesFromFileText(
-        file.text,
-        input.pageStart,
-        input.pageEnd,
+      const summaryUid = createId();
+
+      console.debug(
+        "Creating summary",
+        summaryUid,
+        `${process.env.LAMBDA_FUNCTION_BASE_URL}/summarize`,
       );
 
-      console.debug("Extracted text", text.length, "characters");
-
-      const summary = await summarizeText(
-        text,
-        file.name,
-        input.languageCode,
-        input.type,
-      );
-
-      const s = await prisma.summary.create({
-        data: {
-          fileUid: file.uid,
-          language: input.languageCode,
-          text: summary,
+      void axios.post(
+        `${process.env.LAMBDA_FUNCTION_BASE_URL}/summarize`,
+        {
+          summaryUid,
+          fileKey: file.key,
+          languageCode: input.languageCode,
+          summaryType: input.type,
           pageStart: input.pageStart,
           pageEnd: input.pageEnd,
-          type: input.type,
+          cost,
         },
-      });
+        {
+          headers: {
+            authorization: process.env.INTERNAL_SECRET,
+          },
+        },
+      );
 
-      await deductCoins(ctx.userId, cost);
-
-      return s;
+      return { summaryUid };
     }),
 });

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { api } from "~/utils/api";
-import { getInfoForLanguage } from "~/utils/getInfoForLanguage";
+import { getInfoForLanguage } from "helpers/getInfoForLanguage";
 import { Rating } from "react-simple-star-rating";
 import toast from "react-hot-toast";
 import { logEvent } from "~/hooks/useAmplitudeInit";

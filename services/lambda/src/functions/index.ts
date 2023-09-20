@@ -1,18 +1,24 @@
 import type { AWS } from '@serverless/typescript';
 
-// import schema from './hello/schema';
+import schema from './summarize/schema';
 
 export const functions: AWS['functions'] = {
-  hello: {
-    handler: 'src/functions/hello/handler.main',
-    description: 'Lambda function to say hello',
+  summarize: {
+    handler: 'src/functions/summarize/handler.main',
+    description: 'Lambda to summarize text',
     memorySize: 256,
+    timeout: 120,
     events: [
       {
         http: {
-          method: 'get',
-          path: 'hello',
+          method: 'post',
+          path: 'summarize',
           cors: true,
+          request: {
+            schemas: {
+              'application/json': schema,
+            },
+          },
         },
       },
     ],

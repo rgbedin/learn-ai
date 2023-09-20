@@ -1,7 +1,7 @@
 /* eslint-disable react/no-unescaped-entities */
 import { type SummaryType, type File } from "@prisma/client";
 import { useEffect, useMemo, useState } from "react";
-import Languages from "~/assets/languages.json";
+import Languages from "helpers/assets/languages.json";
 import { getCostBySummaryTypeAndPages } from "~/utils/costs";
 import CostDisplay from "./CostDisplay";
 import { api } from "~/utils/api";

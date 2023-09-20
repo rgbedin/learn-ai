@@ -2,7 +2,7 @@ import { type Summary } from "@prisma/client";
 import dayjs from "dayjs";
 import { useRouter } from "next/router";
 import { useMemo } from "react";
-import { getInfoForLanguage } from "~/utils/getInfoForLanguage";
+import { getInfoForLanguage } from "helpers/getInfoForLanguage";
 import { FileIcon } from "./FileIcon";
 import { logEventWrapper } from "~/hooks/useAmplitudeInit";
 

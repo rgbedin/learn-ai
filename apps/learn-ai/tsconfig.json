@@ -4,6 +4,15 @@
     "plugins": [{ "name": "next" }],
     "baseUrl": "."
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    "../../packages/helpers/ai.ts",
+    "../../services/lambda/src/utils/extractPagesFromFileText.ts",
+    "../../packages/helpers/logHelper.ts",
+    "../../packages/helpers/getInfoForLanguage.ts"
+  ],
   "exclude": ["node_modules"]
 }
