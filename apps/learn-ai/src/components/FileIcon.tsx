@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import React from "react";
 import { FileIcon as FIcon, defaultStyles } from "react-file-icon";
 import mime from "mime-types";

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { type ChatCompletionMessage } from "openai/resources/chat";
 import { OpenAI } from "openai";
 import { DEFAULT_AI_MODEL } from "./aiConstants";
@@ -90,7 +89,6 @@ export async function callOpenAi(
       estimatedPricing,
     };
   } catch (err: any) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     console.error("Error calling OpenAI", err?.message);
     throw err;
   }

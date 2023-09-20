@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable react/no-unescaped-entities */
 import { type SummaryType, type File } from "@prisma/client";
 import { useEffect, useMemo, useState } from "react";

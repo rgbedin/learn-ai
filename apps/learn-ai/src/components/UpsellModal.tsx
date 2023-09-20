@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/no-misused-promises */
 /* eslint-disable react/no-unescaped-entities */
 import { COINS_PER_MONTH, INITIAL_COINS } from "~/utils/constants";
 import { PlanCard } from "./PlanCard";

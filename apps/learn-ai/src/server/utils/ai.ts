@@ -329,7 +329,6 @@ export async function promptText(
 
   console.debug("OpenAI took", new Date().getTime() - timeNow, "ms");
 
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
   return (result as any).text as string;
 }
 
@@ -418,6 +417,5 @@ export async function legacySummarizeText(
 
   console.debug("OpenAI took", new Date().getTime() - timeNow, "ms");
 
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
   return (res as any).text as string;
 }

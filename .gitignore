@@ -13,7 +13,7 @@
 /prisma/db.sqlite-journal
 
 # next.js
-/.next/
+.next/
 /out/
 next-env.d.ts
 
@@ -46,3 +46,4 @@ output
 .turbo
 
 **/node_modules
+**/dist

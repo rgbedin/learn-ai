@@ -1,6 +1,5 @@
 import { useEffect } from "react";
 
-// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 export let amplitude: typeof import("@amplitude/analytics-browser") | undefined;
 
 const AMPLITUDE_API_KEY = process.env.NEXT_PUBLIC_AMPLITUDE_API_KEY;
