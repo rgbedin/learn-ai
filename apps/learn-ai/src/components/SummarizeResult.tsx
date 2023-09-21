@@ -1,5 +1,5 @@
 /* eslint-disable react/no-unescaped-entities */
-import { type Summary, type File, type SummaryType } from "@prisma/client";
+import { type File, type SummaryType } from "@prisma/client";
 import { useEffect, useMemo, useState } from "react";
 import { api } from "~/utils/api";
 import Image from "next/image";
@@ -23,7 +23,7 @@ export const SummarizeResult: React.FC<SummarizeResult> = ({
   pageEnd,
   onClose,
 }) => {
-  const [summary, setSummary] = useState<Summary>();
+  const [summaryUid, setSummaryUid] = useState<string>();
 
   const loadingSteps = useMemo(
     () => [
@@ -46,6 +46,17 @@ export const SummarizeResult: React.FC<SummarizeResult> = ({
 
   const createSummary = api.file.generateSummary.useMutation();
 
+  const { data: generatedSummary } = api.file.getSummary.useQuery(
+    summaryUid ?? "",
+    {
+      enabled: !!summaryUid,
+      retryDelay(failureCount, error) {
+        console.debug("Retrying get summary...", failureCount, error);
+        return 1000;
+      },
+    },
+  );
+
   const ctx = api.useContext();
 
   useEffect(() => {
@@ -67,10 +78,8 @@ export const SummarizeResult: React.FC<SummarizeResult> = ({
         pageEnd,
       },
       {
-        onSuccess: (summary) => {
-          void ctx.file.getSummaries.invalidate();
-          void ctx.coins.getMyCoins.invalidate();
-          setSummary(summary);
+        onSuccess: (s) => {
+          setSummaryUid(s.summaryUid);
         },
         onError: (err) => {
           toast.error(err.message);
@@ -81,7 +90,7 @@ export const SummarizeResult: React.FC<SummarizeResult> = ({
   }, [file.key, languageCode, pageStart, pageEnd]);
 
   useEffect(() => {
-    if (!!summary) {
+    if (!!generatedSummary) {
       return;
     }
 
@@ -98,16 +107,27 @@ export const SummarizeResult: React.FC<SummarizeResult> = ({
     const intervalId = setInterval(updateLoadingStep, 4000);
 
     return () => clearInterval(intervalId);
-  }, [activeStep, summary, loadingSteps]);
+  }, [activeStep, generatedSummary, loadingSteps]);
 
   const router = useRouter();
 
   useEffect(() => {
-    if (summary) {
+    if (generatedSummary) {
+      void ctx.file.getSummaries.invalidate();
+      void ctx.coins.getMyCoins.invalidate();
+
       onClose();
-      void router.push(`/file/${file.uid}?summary=${summary.uid}`);
+
+      void router.push(`/file/${file.uid}?summary=${generatedSummary.uid}`);
     }
-  }, [summary, file.uid, router, onClose]);
+  }, [
+    generatedSummary,
+    file.uid,
+    router,
+    onClose,
+    ctx.file.getSummaries,
+    ctx.coins.getMyCoins,
+  ]);
 
   return (
     <div className="relative flex h-full flex-col gap-6">
