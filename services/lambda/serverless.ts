@@ -2,12 +2,6 @@ import type { AWS } from '@serverless/typescript';
 
 import { functions } from '@functions/index';
 
-import { dotenvLoad } from 'dotenv-mono';
-
-const dotenv = dotenvLoad();
-
-console.debug('Loaded env', dotenv.env);
-
 const serverlessConfiguration: AWS = {
   service: 'lamda',
   frameworkVersion: '3.35.2',

@@ -6,8 +6,8 @@ export const functions: AWS['functions'] = {
   summarize: {
     handler: 'src/functions/summarize/handler.main',
     description: 'Lambda to summarize text',
-    memorySize: 256,
-    timeout: 120,
+    memorySize: 512,
+    timeout: 300,
     events: [
       {
         http: {

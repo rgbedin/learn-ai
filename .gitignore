@@ -47,3 +47,5 @@ output
 
 **/node_modules
 **/dist
+.esbuild/
+.serverless/
