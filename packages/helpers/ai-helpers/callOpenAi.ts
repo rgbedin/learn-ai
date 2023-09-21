@@ -1,7 +1,7 @@
 import { type ChatCompletionMessage } from 'openai/resources/chat';
 import { OpenAI } from 'openai';
 import { DEFAULT_AI_MODEL } from './aiConstants';
-import { encoding_for_model } from 'tiktoken';
+import { encodingForModel } from 'js-tiktoken';
 import { FileLogger } from '../logHelper';
 
 const client = new OpenAI({
@@ -26,7 +26,7 @@ export async function callOpenAi(
     },
   ];
 
-  const tk = encoding_for_model(model.model);
+  const tk = encodingForModel(model.model);
   const tokens = tk.encode(prompt).length + tk.encode(instructions).length;
 
   const maxTokens = model.maxTokens - tokens - 10;

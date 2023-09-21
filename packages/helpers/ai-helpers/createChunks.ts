@@ -1,4 +1,4 @@
-import { encoding_for_model } from 'tiktoken';
+import { encodingForModel } from 'js-tiktoken';
 import { SentenceTokenizer } from 'natural';
 import { DEFAULT_AI_MODEL, DEFAULT_MAX_TOKENS_PER_CHUNK } from './aiConstants';
 import { FileLogger } from '../logHelper';
@@ -46,7 +46,7 @@ export function createChunks(
 
   // Initialize tiktoken for the specified embedding model.
   // This helps calculate the number of tokens in each sentence.
-  const tiktoken = encoding_for_model(model.model);
+  const tiktoken = encodingForModel(model.model);
 
   let chunkStart = 0; // Start of the current chunk in the list of sentences.
 

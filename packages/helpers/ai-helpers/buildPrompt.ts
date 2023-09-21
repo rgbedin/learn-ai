@@ -1,13 +1,12 @@
-import { type TiktokenModel, encoding_for_model } from "tiktoken";
-import { DEFAULT_AI_MODEL } from "./aiConstants";
+import { type TiktokenModel, encodingForModel } from 'js-tiktoken';
+import { DEFAULT_AI_MODEL } from './aiConstants';
 
-const promptStart =
-  "Answer the question based on the context below.\n\nContext:\n";
+const promptStart = 'Answer the question based on the context below.\n\nContext:\n';
 
 export const tokensForQuestion = (question: string, model: TiktokenModel) => {
   const promptEnd = `\n\nQuestion: ${question}\nAnswer:`;
 
-  const tke = encoding_for_model(model);
+  const tke = encodingForModel(model);
 
   const questionTokens = tke.encode(question);
 
@@ -38,22 +37,18 @@ export const tokensForQuestion = (question: string, model: TiktokenModel) => {
  *                Default is whatever's set in DEFAULT_AI_MODEL.
  * @returns A formatted prompt string based on the provided contexts and question. Returns null if the prompt can't be constructed.
  */
-export function buildPrompt(
-  contexts: string[],
-  question: string,
-  model = DEFAULT_AI_MODEL,
-): string {
-  console.debug("Building prompt", { model });
+export function buildPrompt(contexts: string[], question: string, model = DEFAULT_AI_MODEL): string {
+  console.debug('Building prompt', { model });
 
   const promptEnd = `\n\nQuestion: ${question}\nAnswer:`;
 
-  const tke = encoding_for_model(model.model);
+  const tke = encodingForModel(model.model);
 
   const questionTokens = tke.encode(question);
 
   let currentTokenCount = questionTokens.length;
 
-  let prompt = "";
+  let prompt = '';
 
   for (let i = 0; i < contexts.length; i++) {
     const contextTokens = tke.encode(contexts[i]!);
@@ -62,14 +57,13 @@ export function buildPrompt(
 
     // If adding this context exceeds the token limit, construct the prompt with the contexts that fit and break the loop.
     if (currentTokenCount >= model.maxTokens) {
-      prompt =
-        promptStart + contexts.slice(0, i).join("\n\n---\n\n") + promptEnd;
+      prompt = promptStart + contexts.slice(0, i).join('\n\n---\n\n') + promptEnd;
 
       break;
     }
     // If this is the last context and it fits within the token limit, add it to the prompt.
     else if (i === contexts.length - 1) {
-      prompt = promptStart + contexts.join("\n\n---\n\n") + promptEnd;
+      prompt = promptStart + contexts.join('\n\n---\n\n') + promptEnd;
     }
   }
 

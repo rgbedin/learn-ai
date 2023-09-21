@@ -1,8 +1,8 @@
-import { type TiktokenModel } from "tiktoken";
+import { type TiktokenModel } from 'js-tiktoken';
 
 // Embeddings
 export const BATCH_SIZE_FOR_EMBEDDINGS = 250;
-export const DEFAULT_EMBEDDING_MODEL = "text-embedding-ada-002";
+export const DEFAULT_EMBEDDING_MODEL = 'text-embedding-ada-002';
 export const DEFAULT_EMBEDDING_MODEL_PRICE_PER_1000 = 0.0001;
 
 // Chunks
@@ -20,14 +20,14 @@ export type AiModel = {
 };
 
 export const AI_MODELS: Record<string, AiModel> = {
-  "gpt-3.5-turbo": {
-    model: "gpt-3.5-turbo",
+  'gpt-3.5-turbo': {
+    model: 'gpt-3.5-turbo',
     maxTokens: 4097,
     pricePer1000Input: 0.0015,
     pricePer1000Output: 0.002,
   },
-  "gpt-3.5-turbo-16k": {
-    model: "gpt-3.5-turbo-16k",
+  'gpt-3.5-turbo-16k': {
+    model: 'gpt-3.5-turbo-16k',
     maxTokens: 16385,
     pricePer1000Input: 0.003,
     pricePer1000Output: 0.004,
@@ -46,4 +46,4 @@ export const AI_MODELS: Record<string, AiModel> = {
   // },
 };
 
-export const DEFAULT_AI_MODEL = AI_MODELS["gpt-3.5-turbo"]!;
+export const DEFAULT_AI_MODEL = AI_MODELS['gpt-3.5-turbo']!;
