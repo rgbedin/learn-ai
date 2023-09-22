@@ -1,5 +1,5 @@
-import type { APIGatewayProxyResult } from 'aws-lambda';
-import type { ValidatedAPIGatewayProxyEvent } from 'helpers';
+import { APIGatewayProxyResult } from 'aws-lambda';
+import { ValidatedAPIGatewayProxyEvent } from 'helpers';
 import { middyfy, formatJSONResponse } from 'helpers';
 import { summarizeText } from 'helpers/ai';
 
@@ -9,9 +9,9 @@ import { extractPagesFromFileText } from 'src/utils/extractPagesFromFileText';
 import { SummaryType } from 'database';
 
 const summarize = async (event: ValidatedAPIGatewayProxyEvent<typeof schema>): Promise<APIGatewayProxyResult> => {
-  const auth = event.headers['authorization'];
+  const auth = event.headers['Authorization'];
 
-  console.debug('Authorization header', auth);
+  console.debug('Authorization header', auth, event.headers);
 
   if (!auth || auth !== process.env.INTERNAL_SECRET) {
     return {

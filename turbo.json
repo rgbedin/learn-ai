@@ -16,6 +16,12 @@
       "dependsOn": ["^db:generate"],
       "outputs": [".next/**", "!.next/cache/**"]
     },
+    "deploy:dev": {
+      "dependsOn": ["^db:generate"]
+    },
+    "deploy:prd": {
+      "dependsOn": ["^db:generate"]
+    },
     "lint": {}
   }
 }
