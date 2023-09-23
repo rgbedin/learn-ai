@@ -10,13 +10,14 @@ export const DEFAULT_MAX_TOKENS_PER_CHUNK = 1250;
 export const NUM_REPRESENTATIVES_CHUNKS_PER_BUCKET = 3;
 export const CHUNKS_PER_BUCKET = 15;
 
-export const DEFAULT_REPLY_MAX_TOKENS = 256;
+export const DEFAULT_REPLY_MAX_TOKENS = 384;
 
 export type AiModel = {
   model: TiktokenModel;
   maxTokens: number;
   pricePer1000Input: number;
   pricePer1000Output: number;
+  tpm: number;
 };
 
 export const AI_MODELS: Record<string, AiModel> = {
@@ -25,12 +26,14 @@ export const AI_MODELS: Record<string, AiModel> = {
     maxTokens: 4097,
     pricePer1000Input: 0.0015,
     pricePer1000Output: 0.002,
+    tpm: 90000,
   },
   'gpt-3.5-turbo-16k': {
     model: 'gpt-3.5-turbo-16k',
     maxTokens: 16385,
     pricePer1000Input: 0.003,
     pricePer1000Output: 0.004,
+    tpm: 180000,
   },
   // "gpt-4": {
   //   model: "gpt-4",

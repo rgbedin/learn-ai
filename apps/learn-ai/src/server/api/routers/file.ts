@@ -386,6 +386,7 @@ export const fileRouter = createTRPCRouter({
         pageStart: true,
         pageEnd: true,
         type: true,
+        status: true,
       },
       where: {
         file: {
@@ -448,6 +449,22 @@ export const fileRouter = createTRPCRouter({
       return promise;
     }),
 
+  getSummaryJobs: privateProcedure
+    .input(z.object({ summaryUid: z.string().nonempty() }))
+    .query(async ({ ctx, input }) => {
+      const jobs = await ctx.prisma.summaryJob.findMany({
+        select: {
+          index: true,
+          status: true,
+        },
+        where: {
+          summaryUid: input.summaryUid,
+        },
+      });
+
+      return jobs;
+    }),
+
   getSummary: privateProcedure
     .input(z.string().nonempty())
     .query(async ({ ctx, input }) => {
@@ -487,6 +504,7 @@ export const fileRouter = createTRPCRouter({
           pageStart: true,
           pageEnd: true,
           type: true,
+          status: true,
         },
         where: {
           fileUid: input.fileUid,
@@ -599,11 +617,18 @@ export const fileRouter = createTRPCRouter({
 
       const summaryUid = createId();
 
-      console.debug(
-        "Creating summary",
-        summaryUid,
-        `${process.env.LAMBDA_FUNCTION_BASE_URL}/summarize`,
-      );
+      console.debug("Creating summary", summaryUid);
+
+      await prisma.summary.create({
+        data: {
+          uid: summaryUid,
+          fileUid: file.uid,
+          language: input.languageCode,
+          pageStart: input.pageStart,
+          pageEnd: input.pageEnd,
+          type: input.type,
+        },
+      });
 
       void axios.post(
         `${process.env.LAMBDA_FUNCTION_BASE_URL}/summarize`,
@@ -618,7 +643,7 @@ export const fileRouter = createTRPCRouter({
         },
         {
           headers: {
-            authorization: process.env.INTERNAL_SECRET,
+            Authorization: process.env.INTERNAL_SECRET,
           },
         },
       );

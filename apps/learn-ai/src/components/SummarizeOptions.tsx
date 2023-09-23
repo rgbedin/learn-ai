@@ -33,7 +33,7 @@ export const SummarizeOptions: React.FC<SummarizeOptions> = ({
   const hasPagesToSelect = useMemo(() => !!file.numPages, [file.numPages]);
 
   const maxNumberOfPagesAllowed = useMemo(
-    () => (hasValidSub === false ? 5 : Infinity),
+    () => (hasValidSub === false ? 500000 : Infinity),
     [hasValidSub],
   );
 
@@ -72,7 +72,7 @@ export const SummarizeOptions: React.FC<SummarizeOptions> = ({
   }, [hasPagesToSelect, language, invalidPages, hasExceededMaxPages]);
 
   const isNumPagesHigh = useMemo(
-    () => !!pageStart && !!pageEnd && pageEnd - pageStart > 24,
+    () => !!pageStart && !!pageEnd && pageEnd - pageStart > 99,
     [pageStart, pageEnd],
   );
 
@@ -195,7 +195,7 @@ export const SummarizeOptions: React.FC<SummarizeOptions> = ({
 
           {isNumPagesHigh && (
             <span className="text-sm text-red-800">
-              We recommend keeping the {label} under 25 pages to a more accurate
+              We recommend keeping the {label} under 100 pages to a faster
               result.
             </span>
           )}

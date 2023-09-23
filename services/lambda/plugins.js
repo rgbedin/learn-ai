@@ -5,7 +5,11 @@ let myPlugin = copy({
   // if not specified, this plugin uses ESBuild.build outdir/outfile options as base path.
   resolveFrom: 'out',
   assets: {
-    from: ['./node_modules/.prisma/client/schema.prisma', './node_modules/.prisma/client/libquery_engine-rhel*'],
+    from: [
+      '../../node_modules/.prisma/client/schema.prisma',
+      '../../node_modules/.prisma/client/libquery_engine-rhel*',
+      // './node_modules/.prisma/client/libquery_engine-darwin-arm64*',
+    ],
     to: ['.'],
   },
   watch: true,

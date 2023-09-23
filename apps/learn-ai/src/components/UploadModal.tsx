@@ -14,7 +14,7 @@ import CostDisplay from "./CostDisplay";
 import UpgradeInline from "./UpgradeInline";
 import { logEvent } from "@amplitude/analytics-browser";
 
-const UPLOAD_LIMIT_FREE = 3000000;
+const UPLOAD_LIMIT_FREE = 50000000;
 
 const UPLOAD_LIMIT_PAID = 50000000;
 

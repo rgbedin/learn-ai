@@ -16,6 +16,7 @@ interface SummaryCard {
     | "uid"
     | "fileUid"
     | "type"
+    | "status"
   >;
   fileName?: string;
   fixedWidth?: boolean;
@@ -57,6 +58,11 @@ export const SummaryCard: React.FC<SummaryCard> = ({
     [summary?.type],
   );
 
+  const isLoading = useMemo(
+    () => summary?.status !== "DONE" && summary?.status !== "ERROR",
+    [summary?.status],
+  );
+
   return (
     <div
       onClick={logEventWrapper(
@@ -70,18 +76,29 @@ export const SummaryCard: React.FC<SummaryCard> = ({
     >
       {fileName && (
         <div className="flex items-center gap-3">
-          {fileType && <FileIcon type={fileType} size="sm" previewUrl={null} />}
+          {fileType && !isLoading && (
+            <FileIcon type={fileType} size="sm" previewUrl={null} />
+          )}
+          {isLoading && (
+            <span className="loading loading-spinner loading-sm"></span>
+          )}
           <span className="line-clamp-1">{fileName}</span>
         </div>
       )}
 
       {!fixedWidth && (
         <>
-          <span className="line-clamp-1">
-            {summary.pageStart && summary.pageEnd
-              ? `Pages ${summary.pageStart}-${summary.pageEnd} `
-              : label}
-          </span>
+          <div className="flex items-center gap-3">
+            {isLoading && (
+              <span className="loading loading-spinner loading-sm"></span>
+            )}
+
+            <span className="line-clamp-1">
+              {summary.pageStart && summary.pageEnd
+                ? `Pages ${summary.pageStart}-${summary.pageEnd} `
+                : label}
+            </span>
+          </div>
 
           <span className="line-clamp-1">
             {getInfoForLanguage(summary.language)?.language}

@@ -65,23 +65,48 @@ model ChatHistoryEntry {
 }
 
 model Summary {
-  uid       String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  text      String   @db.LongText
+  uid       String        @id @default(cuid())
+  createdAt DateTime      @default(now())
+  text      String?       @db.LongText
   type      SummaryType
   language  String
   pageStart Int?
   pageEnd   Int?
   rating    Int?
-  file      File     @relation(fields: [fileUid], references: [uid], onDelete: Cascade)
+  file      File          @relation(fields: [fileUid], references: [uid], onDelete: Cascade)
   fileUid   String
+  jobs      SummaryJob[]
+  status    SummaryStatus @default(PENDING)
+  tokensUsed        Int?
+  estimatedPricing  Float?
 
   @@index([fileUid])
+}
+
+model SummaryJob {
+  uid               String        @id @default(cuid())
+  createdAt         DateTime      @default(now())
+  status            SummaryStatus @default(PENDING)
+  summary           Summary       @relation(fields: [summaryUid], references: [uid], onDelete: Cascade)
+  summaryUid        String
+  text              String?        @db.LongText
+  index             Int
+  tokensUsed        Int?
+  estimatedPricing  Float?
+
+  @@index([summaryUid])
 }
 
 enum SummaryType {
   SUMMARY
   OUTLINE
   EXPLAIN
+}
+
+enum SummaryStatus {
+  PENDING
+  PROCESSING
+  DONE
+  ERROR
 }
 

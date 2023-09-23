@@ -1,6 +1,6 @@
 import { type SummaryType } from "@prisma/client";
 
-const PRICE_SUMMARY_PER_100_PAGES = 0.15;
+const PRICE_SUMMARY_PER_25_PAGES = 0.05;
 const PRICE_PER_COIN = 0.1;
 const PROFIT_MARGIN = 1.5;
 
@@ -17,10 +17,10 @@ export const getCostBySummaryTypeAndPages = (
 
   if (pages) {
     return getPriceInCoinsWithProfitMargin(
-      (pages / 100) * PRICE_SUMMARY_PER_100_PAGES,
+      (pages / 25) * PRICE_SUMMARY_PER_25_PAGES,
     );
   } else {
-    return getPriceInCoinsWithProfitMargin(PRICE_SUMMARY_PER_100_PAGES);
+    return getPriceInCoinsWithProfitMargin(PRICE_SUMMARY_PER_25_PAGES * 2);
   }
 };
 

@@ -21,75 +21,140 @@ import {
 import { FileLogger } from './logHelper';
 import { getModelThatFits } from './ai-helpers/getModelThatFits';
 import { getInfoForLanguage } from './getInfoForLanguage';
+import { breakTextIntoConsumableBuckets } from './ai-helpers/breakTextIntoConsumableBuckets';
 
-const getSummarizePrompt = (languageCode: string) => {
+const getSummarizePrompt = (languageCode: string, text?: string) => {
   const language = getInfoForLanguage(languageCode);
 
-  return `Summarize the text.
-    Give preference to more paragraphs over fewer paragraphs, and make them as short as possible.
-    Give the summary a short title.
-    Give your reply in the language ${language?.language} (${language?.code}). 
-    Follow strictly the given pattern for the reply, using HTML for formatting:
+  const prompt = `Summarize the text.
+    Give the summary a short title; the title should be a short phrase that summarizes the key points.
+    Do not start your reply with "The text says" or "The text is about" or anything similar. Start right away with the summary.
+    Give your reply strictly in the language ${language?.language} (${language?.code}). Do not use any other language.
 
-    <b>Section:</b> [title]<br>
-    <b>Summary:</b> <span>[summary]</span><br>
+    Text to summarize:
+    ${text}
 `;
+
+  const fn = {
+    name: 'do_summary',
+    parameters: {
+      type: 'object',
+      properties: {
+        title: {
+          type: 'string',
+          description: 'The title of the text output',
+        },
+        summary: {
+          type: 'string',
+          description: 'The summary of the text output',
+        },
+      },
+    },
+  };
+
+  return { prompt, fn };
 };
 
-const getOutlinePrompt = (languageCode: string) => {
+const getOutlinePrompt = (languageCode: string, text?: string) => {
   const language = getInfoForLanguage(languageCode);
 
-  return `Create an outline for the text.
-    Give the outline a short title and provide bullet points for the key parts of the text.
-    Use a hierarchical structure for the outline.
-    Give your reply in the language ${language?.language} (${language?.code}). 
-    Output multiple sections and provide a title for each section, following strictly the format below with HTML for formatting:
+  const prompt = `Create an outline for the text.
+    Give the outline a short title; the title should be a short phrase that summarizes the key points.
+    Do not add an "introduction" or "conclusion" section.
+    Give your reply strictly in the language ${language?.language} (${language?.code}). Do not use any other language
 
-    <b>Section:</b> [title]<br>
-    <span>[outline]</span><br>`;
+    Text to outline:
+    ${text}
+    `;
+
+  const fn = {
+    name: 'do_outline',
+    parameters: {
+      type: 'object',
+      properties: {
+        title: {
+          type: 'string',
+          description: 'The title of the text output',
+        },
+        outline: {
+          type: 'array',
+          description:
+            'Individual bullet points of the outline of the text output. Each newline is a new bullet point.',
+          items: {
+            type: 'string',
+          },
+        },
+      },
+    },
+  };
+
+  return { prompt, fn };
 };
 
-const getExplainPrompt = (languageCode: string) => {
+const getExplainPrompt = (languageCode: string, text?: string) => {
   const language = getInfoForLanguage(languageCode);
 
-  return `Explain this text like I am 12 years old.
-    Give your reply in the language ${language?.language} (${language?.code}). 
-    Follow strictly the given pattern for the reply, using HTML for formatting:
+  const prompt = `Explain this text like I am 12 years old.
+    Give the explanation a short title; the title should be a short phrase that summarizes the key points of the explanation.
+    Do not start your reply with "The text says" or "The text is about" or anything similar. Start right away with the explanation.
+    Give your reply strictly in the language ${language?.language} (${language?.code}). Do not use any other language.
 
-    <b>Section:</b> [title]<br>
-    <span>[explanation]</span><br>`;
+
+    Text to explain:
+    ${text}
+    `;
+
+  const fn = {
+    name: 'do_explain',
+    parameters: {
+      type: 'object',
+      properties: {
+        title: {
+          type: 'string',
+          description: 'The title of the text output',
+        },
+        explanation: {
+          type: 'string',
+          description: 'The explanation of the text output',
+        },
+      },
+    },
+  };
+
+  return { prompt, fn };
 };
 
-const getPrompt = (type: SummaryType, languageCode: string) => {
+const getPrompt = (type: SummaryType, languageCode: string, text?: string) => {
   if (type === 'SUMMARY') {
-    return getSummarizePrompt(languageCode);
+    return getSummarizePrompt(languageCode, text);
   } else if (type === 'OUTLINE') {
-    return getOutlinePrompt(languageCode);
+    return getOutlinePrompt(languageCode, text);
   } else {
-    return getExplainPrompt(languageCode);
+    return getExplainPrompt(languageCode, text);
   }
 };
 
-export async function summarizeText(text: string, file: string, languageCode: string, type: SummaryType) {
-  const logger = new FileLogger(file);
-  const question = getPrompt(type, languageCode);
-  const model = getModelThatFits(text, question);
+export async function getBucketsToSummarize(text: string, languageCode: string, type: SummaryType) {
+  const { prompt: question } = getPrompt(type, languageCode, '');
 
-  if (model) {
-    console.debug('Found model that fits text', model);
-    const prompt = buildPrompt([text], question, model);
-    logger.logToFile('single-prompt.txt', prompt);
+  const buckets = breakTextIntoConsumableBuckets(question, text);
 
-    const openAIResponse = await callOpenAi(prompt, logger, model);
-
-    console.debug('OpenAI response', openAIResponse);
-
-    return openAIResponse.message;
-  } else {
-    console.debug('No model found that fits text');
-    return summarizeLongText(text, file, languageCode, type);
-  }
+  return buckets;
 }
+
+export async function summarize(text: string, index: number, file: string, languageCode: string, type: SummaryType) {
+  const logger = new FileLogger(file);
+
+  const { prompt: question, fn } = getPrompt(type, languageCode, text);
+
+  const openAIResponse = await callOpenAi(question, logger, fn);
+
+  logger.logToFile(`response-chunk-${index}`, openAIResponse.message);
+
+  return openAIResponse;
+}
+
+////// OLD FUNCTIONS BELOW ///////
 
 async function summarizeLongText(text: string, file: string, languageCode: string, type: SummaryType) {
   const logger = new FileLogger(file);
@@ -214,7 +279,8 @@ async function summarizeLongText(text: string, file: string, languageCode: strin
 
     logger.logToFile(`chunks-representatives-${numBucket}.txt`, JSON.stringify(bucketRepresentatives, null, 2));
 
-    const prompt = buildPrompt(representativesTexts, getPrompt(type, languageCode));
+    const { prompt: p } = getPrompt(type, languageCode);
+    const prompt = buildPrompt(representativesTexts, p);
 
     const { message, tokensUsed: tokensUsedInCall, estimatedPricing: ep } = await callOpenAi(prompt, logger);
 

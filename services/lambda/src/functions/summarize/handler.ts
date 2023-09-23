@@ -1,14 +1,22 @@
 import { APIGatewayProxyResult } from 'aws-lambda';
 import { ValidatedAPIGatewayProxyEvent } from 'helpers';
 import { middyfy, formatJSONResponse } from 'helpers';
-import { summarizeText } from 'helpers/ai';
+import { getBucketsToSummarize } from 'helpers/ai';
+import { SQS } from 'aws-sdk';
 
 import schema from './schema';
 import { prisma } from 'database/src/client';
 import { extractPagesFromFileText } from 'src/utils/extractPagesFromFileText';
 import { SummaryType } from 'database';
+import { SummaryQueueMessage } from 'src/interfaces/SummaryQueueMessage';
+
+const sqs = new SQS();
 
 const summarize = async (event: ValidatedAPIGatewayProxyEvent<typeof schema>): Promise<APIGatewayProxyResult> => {
+  const queueUrl = `https://sqs.us-east-1.amazonaws.com/219216455343/summary-queue-${process.env.AWS_ENVIRONMENT}`;
+
+  console.debug('Queue URL', queueUrl);
+
   const auth = event.headers['Authorization'];
 
   console.debug('Authorization header', auth, event.headers);
@@ -41,21 +49,41 @@ const summarize = async (event: ValidatedAPIGatewayProxyEvent<typeof schema>): P
 
   console.debug('Extracted text', text.length, 'characters');
 
-  const summary = await summarizeText(text, file.name, event.body.languageCode, event.body.summaryType as SummaryType);
+  const buckets = await getBucketsToSummarize(text, event.body.languageCode, event.body.summaryType as SummaryType);
 
-  const s = await prisma.summary.create({
-    data: {
-      uid: event.body.summaryUid,
-      fileUid: file.uid,
-      language: event.body.languageCode,
-      text: summary,
-      pageStart: event.body.pageStart,
-      pageEnd: event.body.pageEnd,
-      type: event.body.summaryType as SummaryType,
-    },
-  });
+  console.debug(
+    'Buckets',
+    buckets.length,
+    'Average characters per bucket',
+    buckets.reduce((acc, b) => acc + b.length, 0) / buckets.length
+  );
 
-  console.debug('Created summary', s.uid);
+  // Each buckets will turn into a SummaryJob
+  for (const b of buckets) {
+    const job = await prisma.summaryJob.create({
+      data: {
+        summaryUid: event.body.summaryUid,
+        index: buckets.indexOf(b),
+      },
+    });
+
+    const queueMessage: SummaryQueueMessage = {
+      uid: job.uid,
+      index: job.index,
+      text: b,
+      languageCode: event.body.languageCode,
+      summaryType: event.body.summaryType as SummaryType,
+      summaryUid: event.body.summaryUid,
+      fileName: file.name,
+    };
+
+    const params = {
+      MessageBody: JSON.stringify(queueMessage),
+      QueueUrl: queueUrl,
+    };
+
+    await sqs.sendMessage(params).promise();
+  }
 
   await prisma.coins.update({
     where: {
@@ -70,8 +98,18 @@ const summarize = async (event: ValidatedAPIGatewayProxyEvent<typeof schema>): P
 
   console.debug('Deducted coins', event.body.cost);
 
+  await prisma.summary.update({
+    where: {
+      uid: event.body.summaryUid,
+    },
+    data: {
+      status: 'PROCESSING',
+    },
+  });
+
   return formatJSONResponse({
-    summaryUid: s.uid,
+    summaryUid: event.body.summaryUid,
+    status: 'PROCESSING',
   });
 };
 

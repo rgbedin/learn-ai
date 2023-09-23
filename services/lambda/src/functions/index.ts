@@ -6,7 +6,7 @@ export const functions: AWS['functions'] = {
   summarize: {
     handler: 'src/functions/summarize/handler.main',
     description: 'Lambda to summarize text',
-    memorySize: 512,
+    memorySize: 2048,
     timeout: 300,
     events: [
       {
@@ -18,6 +18,22 @@ export const functions: AWS['functions'] = {
             schemas: {
               'application/json': schema,
             },
+          },
+        },
+      },
+    ],
+  },
+  consumeQueue: {
+    handler: 'src/functions/consumeQueue/handler.main',
+    memorySize: 2048,
+    timeout: 300,
+    events: [
+      {
+        sqs: {
+          batchSize: 1,
+          maximumConcurrency: 200,
+          arn: {
+            'Fn::GetAtt': ['SummaryQueue', 'Arn'],
           },
         },
       },

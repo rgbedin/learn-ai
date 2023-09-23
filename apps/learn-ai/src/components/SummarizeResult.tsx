@@ -23,8 +23,6 @@ export const SummarizeResult: React.FC<SummarizeResult> = ({
   pageEnd,
   onClose,
 }) => {
-  const [summaryUid, setSummaryUid] = useState<string>();
-
   const loadingSteps = useMemo(
     () => [
       "Bribing the Insight Imp for a concise extraction",
@@ -46,16 +44,7 @@ export const SummarizeResult: React.FC<SummarizeResult> = ({
 
   const createSummary = api.file.generateSummary.useMutation();
 
-  const { data: generatedSummary } = api.file.getSummary.useQuery(
-    summaryUid ?? "",
-    {
-      enabled: !!summaryUid,
-      retryDelay(failureCount, error) {
-        console.debug("Retrying get summary...", failureCount, error);
-        return 1000;
-      },
-    },
-  );
+  const [createdSummaryUid, setCreatedSummaryUid] = useState<string>();
 
   const ctx = api.useContext();
 
@@ -79,7 +68,7 @@ export const SummarizeResult: React.FC<SummarizeResult> = ({
       },
       {
         onSuccess: (s) => {
-          setSummaryUid(s.summaryUid);
+          setCreatedSummaryUid(s.summaryUid);
         },
         onError: (err) => {
           toast.error(err.message);
@@ -90,10 +79,6 @@ export const SummarizeResult: React.FC<SummarizeResult> = ({
   }, [file.key, languageCode, pageStart, pageEnd]);
 
   useEffect(() => {
-    if (!!generatedSummary) {
-      return;
-    }
-
     const updateLoadingStep = () => {
       const nextStepIndex = loadingSteps.indexOf(activeStep) + 1;
 
@@ -107,21 +92,25 @@ export const SummarizeResult: React.FC<SummarizeResult> = ({
     const intervalId = setInterval(updateLoadingStep, 4000);
 
     return () => clearInterval(intervalId);
-  }, [activeStep, generatedSummary, loadingSteps]);
+  }, [activeStep, loadingSteps]);
 
   const router = useRouter();
 
   useEffect(() => {
-    if (generatedSummary) {
-      void ctx.file.getSummaries.invalidate();
-      void ctx.coins.getMyCoins.invalidate();
+    if (createdSummaryUid) {
+      const t = setTimeout(() => {
+        void ctx.file.getSummaries.invalidate();
+        void ctx.coins.getMyCoins.invalidate();
 
-      onClose();
+        onClose();
 
-      void router.push(`/file/${file.uid}?summary=${generatedSummary.uid}`);
+        void router.push(`/file/${file.uid}?summary=${createdSummaryUid}`);
+      }, 3000);
+
+      return () => clearTimeout(t);
     }
   }, [
-    generatedSummary,
+    createdSummaryUid,
     file.uid,
     router,
     onClose,

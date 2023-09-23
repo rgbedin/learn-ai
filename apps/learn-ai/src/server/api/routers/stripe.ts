@@ -139,8 +139,12 @@ export const handleSubscriptionUpdated = async ({
   event: Stripe.Event;
   prisma: PrismaClient;
 }) => {
+  console.debug("Handling subscription updated", event);
+
   const subscription = event.data.object as Stripe.Subscription;
   const userId = subscription.metadata.userId;
+
+  console.debug("Updating user subscription", subscription, userId);
 
   await prisma.user.update({
     where: {
