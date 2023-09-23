@@ -8,12 +8,10 @@ import { prisma } from "database/src/client";
 import axios from "axios";
 import { createId } from "@paralleldrive/cuid2";
 import { extractPdf } from "~/server/utils/extractPdf";
-import {
-  getCostBySummaryTypeAndPages,
-  getCostUploadByFileType,
-} from "~/utils/costs";
+import { estimateCostForText, getCostUploadByFileType } from "~/utils/costs";
 import { deductCoins, ensureUserHasCoins } from "./coins";
 import { SummaryType } from "@prisma/client";
+import { extractPagesFromFileText } from "../../../../../../services/lambda/src/utils/extractPagesFromFileText";
 
 const BUCKET_NAME = "learn-ai-m93";
 
@@ -575,6 +573,47 @@ export const fileRouter = createTRPCRouter({
       });
     }),
 
+  getCostForSummary: privateProcedure
+    .input(
+      z.object({
+        fileKey: z.string().nonempty(),
+        pageStart: z.number().int().positive().optional(),
+        pageEnd: z.number().int().positive().optional(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const file = await prisma.file.findFirst({
+        where: {
+          key: input.fileKey,
+          userId: ctx.userId,
+        },
+      });
+
+      if (!file) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "File not found",
+        });
+      }
+
+      if (!file.text) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "File has not been processed yet",
+        });
+      }
+
+      const theText = extractPagesFromFileText(
+        file.text,
+        input.pageStart,
+        input.pageEnd,
+      );
+
+      const cost = estimateCostForText(theText);
+
+      return cost;
+    }),
+
   generateSummary: privateProcedure
     .input(
       z.object({
@@ -586,14 +625,6 @@ export const fileRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const cost = getCostBySummaryTypeAndPages(
-        input.type,
-        input.pageStart,
-        input.pageEnd,
-      );
-
-      await ensureUserHasCoins(ctx.userId, cost);
-
       const file = await prisma.file.findFirst({
         where: {
           key: input.key,
@@ -614,6 +645,16 @@ export const fileRouter = createTRPCRouter({
           message: "File has not been processed yet",
         });
       }
+
+      const theText = extractPagesFromFileText(
+        file.text,
+        input.pageStart,
+        input.pageEnd,
+      );
+
+      const cost = estimateCostForText(theText);
+
+      await ensureUserHasCoins(ctx.userId, cost);
 
       const summaryUid = createId();
 
