@@ -30,6 +30,8 @@ const summarize = async (event: ValidatedAPIGatewayProxyEvent<typeof schema>): P
     };
   }
 
+  console.debug('Finding file', event.body.fileKey);
+
   const file = await prisma.file.findFirst({
     where: {
       key: event.body.fileKey,
@@ -37,6 +39,8 @@ const summarize = async (event: ValidatedAPIGatewayProxyEvent<typeof schema>): P
   });
 
   if (!file?.text) {
+    console.error('File not found', event.body.fileKey);
+
     return {
       statusCode: 404,
       body: JSON.stringify({

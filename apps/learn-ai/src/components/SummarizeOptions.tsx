@@ -2,7 +2,6 @@
 import { type SummaryType, type File } from "@prisma/client";
 import { useEffect, useMemo, useState } from "react";
 import Languages from "helpers/assets/languages.json";
-import { getCostBySummaryTypeAndPages } from "~/utils/costs";
 import CostDisplay from "./CostDisplay";
 import { api } from "~/utils/api";
 import UpgradeInline from "./UpgradeInline";
@@ -27,6 +26,13 @@ export const SummarizeOptions: React.FC<SummarizeOptions> = ({
   const [hasEnoughCoins, setHasEnoughCoins] = useState<boolean>(true);
 
   const { data: subsInfo } = api.user.getSubscriptionStatus.useQuery();
+
+  const { data: costCoins, isLoading: isLoadingCost } =
+    api.file.getCostForSummary.useQuery({
+      fileKey: file.key,
+      pageEnd,
+      pageStart,
+    });
 
   const hasValidSub = useMemo(() => subsInfo?.isValid, [subsInfo]);
 
@@ -85,11 +91,6 @@ export const SummarizeOptions: React.FC<SummarizeOptions> = ({
         : "explanation",
     [type],
   );
-
-  const costCoins = useMemo(() => {
-    const coins = getCostBySummaryTypeAndPages(type, pageStart, pageEnd);
-    return coins;
-  }, [type, pageStart, pageEnd]);
 
   const onCancelWrapper = () => {
     logEvent("CANCEL_SUMMARIZE", { file, type });
@@ -227,7 +228,7 @@ export const SummarizeOptions: React.FC<SummarizeOptions> = ({
         </button>
 
         <button
-          disabled={!canProceed || !hasEnoughCoins}
+          disabled={!canProceed || !hasEnoughCoins || isLoadingCost}
           className="self-end rounded bg-[#003049] px-6 py-3 text-sm font-bold uppercase text-white shadow outline-none transition-all duration-150 ease-linear hover:shadow-lg focus:outline-none active:bg-[#003049] disabled:cursor-not-allowed disabled:opacity-50"
           type="button"
           onClick={() => onNextWrapper(language, pageStart, pageEnd)}
