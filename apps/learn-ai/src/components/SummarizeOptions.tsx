@@ -33,7 +33,7 @@ export const SummarizeOptions: React.FC<SummarizeOptions> = ({
   const hasPagesToSelect = useMemo(() => !!file.numPages, [file.numPages]);
 
   const maxNumberOfPagesAllowed = useMemo(
-    () => (hasValidSub === false ? 500000 : Infinity),
+    () => (hasValidSub === false ? 5 : Infinity),
     [hasValidSub],
   );
 
