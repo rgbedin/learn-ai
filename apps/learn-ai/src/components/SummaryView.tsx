@@ -6,6 +6,8 @@ import toast from "react-hot-toast";
 import { logEvent } from "~/hooks/useAmplitudeInit";
 import Header from "./Header";
 import Image from "next/image";
+import { usePDF } from "react-to-pdf";
+import { AiOutlineCloudDownload } from "react-icons/ai";
 
 interface SummaryView {
   summaryUid: string;
@@ -13,6 +15,8 @@ interface SummaryView {
 
 export const SummaryView: React.FC<SummaryView> = ({ summaryUid }) => {
   const [rating, setRating] = useState(0);
+
+  const { toPDF, targetRef } = usePDF({ filename: "resumito.pdf" });
 
   const { data: summary } = api.file.getSummary.useQuery(summaryUid, {
     refetchInterval(data) {
@@ -119,7 +123,7 @@ export const SummaryView: React.FC<SummaryView> = ({ summaryUid }) => {
   );
 
   return (
-    <div className="relative flex h-full flex-col gap-6">
+    <div className="relative flex h-full flex-col gap-6" ref={targetRef}>
       <Header>{label}</Header>
 
       {!isReady && (
@@ -238,6 +242,11 @@ export const SummaryView: React.FC<SummaryView> = ({ summaryUid }) => {
           <div className="rounded-md bg-[#cbcbcb] bg-opacity-20 p-2">
             <div dangerouslySetInnerHTML={{ __html: summary.text! }} />
           </div>
+
+          <button className="btn" onClick={() => toPDF()}>
+            <AiOutlineCloudDownload size={24} />
+            Download as PDF
+          </button>
 
           <div className="mt-1 flex flex-col">
             <span>How good was this {label.toLocaleLowerCase()}?</span>
