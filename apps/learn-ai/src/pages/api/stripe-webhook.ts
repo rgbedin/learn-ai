@@ -25,6 +25,8 @@ const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "POST") {
+    console.info("Start Stripe webhook event");
+
     const buf = await buffer(req);
     const sig = req.headers["stripe-signature"];
 
@@ -32,6 +34,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
     try {
       event = stripe.webhooks.constructEvent(buf, sig as string, webhookSecret);
+
+      console.info("Received Stripe webhook event", event);
 
       switch (event.type) {
         case "invoice.paid":
