@@ -37,6 +37,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
       console.info("Received Stripe webhook event", event);
 
+      let res: any = null;
+
       switch (event.type) {
         case "invoice.paid":
           await handleInvoicePaid({
@@ -46,13 +48,13 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           });
           break;
         case "customer.subscription.created":
-          await handleSubscriptionUpdated({
+          res = await handleSubscriptionUpdated({
             event,
             prisma,
           });
           break;
         case "customer.subscription.updated":
-          await handleSubscriptionUpdated({
+          res = await handleSubscriptionUpdated({
             event,
             prisma,
           });
@@ -65,7 +67,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           // Can also have Stripe send an email to the customer notifying them of the failure. See settings: https://dashboard.stripe.com/settings/billing/automatic
           break;
         case "customer.subscription.deleted":
-          await handleSubscriptionUpdated({
+          res = await handleSubscriptionUpdated({
             event,
             prisma,
           });
@@ -81,7 +83,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         // Unexpected event type
       }
 
-      res.json({ received: true });
+      res.json({ received: true, res });
     } catch (err) {
       res.status(400).send(err);
       return;

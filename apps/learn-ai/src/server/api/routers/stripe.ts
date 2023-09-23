@@ -146,7 +146,7 @@ export const handleSubscriptionUpdated = async ({
 
   console.info("Updating user subscription", subscription, userId);
 
-  await prisma.user.update({
+  return await prisma.user.update({
     where: {
       id: userId,
     },
