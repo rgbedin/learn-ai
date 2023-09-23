@@ -1,0 +1,29 @@
+{
+  "extends": "tsconfig/base.json",
+  "compilerOptions": {
+    "target": "es2021",
+    "lib": ["es2021"],
+    "outDir": "./dist",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "sourceMap": true,
+    "strict": true,
+    "noImplicitAny": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "removeComments": true,
+    "resolveJsonModule": true,
+    "strictNullChecks": true,
+    "baseUrl": ".",
+    "paths": {
+      "@functions/*": ["src/functions/*"]
+    }
+  },
+  "include": ["src/**/*.ts", "serverless.ts", "../../packages/helpers/ai-helpers/OpenAiSummaryReply.ts"],
+  "exclude": ["node_modules"]
+}

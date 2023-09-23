@@ -1,0 +1,46 @@
+{
+  "name": "lambda",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "serverless offline start --stage development",
+    "deploy:dev": "serverless deploy --stage development",
+    "deploy:prd": "serverless deploy --stage production",
+    "lint": "eslint '**/*.ts'",
+    "lint:fix": "eslint '**/*.ts' --fix",
+    "package": "serverless package"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.22.20",
+    "@babel/preset-env": "^7.22.20",
+    "@babel/preset-typescript": "^7.22.15",
+    "@serverless/typescript": "^3.30.1",
+    "babel-loader": "^9.1.3",
+    "copy-webpack-plugin": "^11.0.0",
+    "esbuild-plugin-copy": "^2.1.1",
+    "eslint": "^8.36.0",
+    "fork-ts-checker-webpack-plugin": "^8.0.0",
+    "serverless-dotenv-plugin": "^6.0.0",
+    "serverless-esbuild": "^1.48.0",
+    "serverless-offline": "^12.0.4",
+    "serverless-webpack": "^5.13.0",
+    "ts-loader": "^9.4.4",
+    "tsconfig": "workspace:*",
+    "webpack": "^5.88.2",
+    "webpack-node-externals": "^3.0.0"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.3.1",
+    "@vercel/kv": "^0.2.3",
+    "config": "*",
+    "database": "*",
+    "helpers": "*",
+    "openai-chat-tokens": "^0.2.7",
+    "prisma": "^5.3.1",
+    "serverless": "^3.35.2",
+    "ts-node": "^10.9.1"
+  },
+  "resolutions": {
+    "string-width": "5.2.1"
+  }
+}
