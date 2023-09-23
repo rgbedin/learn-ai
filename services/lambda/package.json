@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "dev": "serverless offline start",
+    "dev": "serverless offline start --stage development",
     "deploy:dev": "serverless deploy --stage development",
     "deploy:prd": "serverless deploy --stage production",
     "lint": "eslint '**/*.ts'",
