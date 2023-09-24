@@ -10,7 +10,7 @@ export const DEFAULT_MAX_TOKENS_PER_CHUNK = 1250;
 export const NUM_REPRESENTATIVES_CHUNKS_PER_BUCKET = 3;
 export const CHUNKS_PER_BUCKET = 15;
 
-export const DEFAULT_REPLY_MAX_TOKENS = 384;
+export const DEFAULT_REPLY_MAX_TOKENS = 400;
 
 export type AiModel = {
   model: TiktokenModel;

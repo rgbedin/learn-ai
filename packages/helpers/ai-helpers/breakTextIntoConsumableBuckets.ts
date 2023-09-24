@@ -2,12 +2,17 @@ import { encodingForModel } from 'js-tiktoken';
 import { DEFAULT_AI_MODEL, DEFAULT_REPLY_MAX_TOKENS } from './aiConstants';
 import { SentenceTokenizer } from 'natural';
 
-export function breakTextIntoConsumableBuckets(question: string, text: string, model = DEFAULT_AI_MODEL): string[] {
+export function breakTextIntoConsumableBuckets(
+  question: string,
+  text: string,
+  model = DEFAULT_AI_MODEL,
+  maxTokens?: number
+): string[] {
   const encoding = encodingForModel(model.model);
 
   const questionTokens = encoding.encode(question).length;
 
-  const maxTextTokens = model.maxTokens - questionTokens - DEFAULT_REPLY_MAX_TOKENS - 50; // 50 is a buffer for functions
+  const maxTextTokens = maxTokens ?? model.maxTokens - questionTokens - DEFAULT_REPLY_MAX_TOKENS - 50; // 50 is a buffer for functions
 
   if (maxTextTokens <= 0) {
     throw new Error('Question length exceeds model token limit.');
