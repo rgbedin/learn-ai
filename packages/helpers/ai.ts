@@ -19,7 +19,6 @@ import {
   NUM_REPRESENTATIVES_CHUNKS_PER_BUCKET,
 } from './ai-helpers/aiConstants';
 import { FileLogger } from './logHelper';
-import { getModelThatFits } from './ai-helpers/getModelThatFits';
 import { getInfoForLanguage } from './getInfoForLanguage';
 import { breakTextIntoConsumableBuckets } from './ai-helpers/breakTextIntoConsumableBuckets';
 
@@ -30,6 +29,7 @@ const getSummarizePrompt = (languageCode: string, text?: string) => {
     Give the summary a short title; the title should be a short phrase that summarizes the key points.
     Do not start your reply with "The text says" or "The text is about" or anything similar. Start right away with the summary.
     Give your reply strictly in the language ${language?.language} (${language?.code}). Do not use any other language.
+    Give you reply using a maximum of 12 sentences.
 
     Text to summarize:
     ${text}
@@ -42,13 +42,14 @@ const getSummarizePrompt = (languageCode: string, text?: string) => {
       properties: {
         title: {
           type: 'string',
-          description: 'The title of the text output',
+          description: 'The title of the text output. Escape double quotes with a backslash.',
         },
         summary: {
           type: 'string',
-          description: 'The summary of the text output',
+          description: 'The summary of the text output. Escape double quotes with a backslash.',
         },
       },
+      required: ['title', 'summary'],
     },
   };
 
@@ -74,17 +75,18 @@ const getOutlinePrompt = (languageCode: string, text?: string) => {
       properties: {
         title: {
           type: 'string',
-          description: 'The title of the text output',
+          description: 'The title of the text output. Escape double quotes with a backslash.',
         },
         outline: {
           type: 'array',
           description:
-            'Individual bullet points of the outline of the text output. Each newline is a new bullet point.',
+            'Individual bullet points of the outline of the text output. Each newline is a new bullet point. Escape double quotes with a backslash.',
           items: {
             type: 'string',
           },
         },
       },
+      required: ['title', 'outline'],
     },
   };
 
@@ -95,10 +97,10 @@ const getExplainPrompt = (languageCode: string, text?: string) => {
   const language = getInfoForLanguage(languageCode);
 
   const prompt = `Explain this text like I am 12 years old.
-    Give the explanation a short title; the title should be a short phrase that summarizes the key points of the explanation.
+    Give the explanation a short title; the title must be a short phrase that summarizes the key points of the explanation.
     Do not start your reply with "The text says" or "The text is about" or anything similar. Start right away with the explanation.
     Give your reply strictly in the language ${language?.language} (${language?.code}). Do not use any other language.
-
+    Give you reply using a maximum of 12 sentences.
 
     Text to explain:
     ${text}
@@ -111,13 +113,14 @@ const getExplainPrompt = (languageCode: string, text?: string) => {
       properties: {
         title: {
           type: 'string',
-          description: 'The title of the text output',
+          description: 'The title of the text output. Escape double quotes with a backslash.',
         },
         explanation: {
           type: 'string',
-          description: 'The explanation of the text output',
+          description: 'The explanation of the text output. Escape double quotes with a backslash.',
         },
       },
+      required: ['title', 'explanation'],
     },
   };
 
@@ -137,7 +140,7 @@ const getPrompt = (type: SummaryType, languageCode: string, text?: string) => {
 export async function getBucketsToSummarize(text: string, languageCode: string, type: SummaryType) {
   const { prompt: question } = getPrompt(type, languageCode, '');
 
-  const buckets = breakTextIntoConsumableBuckets(question, text);
+  const buckets = breakTextIntoConsumableBuckets(question, text, DEFAULT_AI_MODEL);
 
   return buckets;
 }

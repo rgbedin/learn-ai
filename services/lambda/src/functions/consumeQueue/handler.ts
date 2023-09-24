@@ -4,8 +4,8 @@ import { summarize } from 'helpers/ai';
 import { SummaryQueueMessage } from 'src/interfaces/SummaryQueueMessage';
 import { OpenAiSummaryReply } from 'helpers/ai-helpers/OpenAiSummaryReply';
 import { SummaryStatus } from 'database';
-import { hasTwoNonEmptyKeys } from 'src/utils/hasTwoNonEmptyKeys';
 import { kv } from '@vercel/kv';
+import { fixAndParseJSON } from '../../utils/fixJson';
 import { DEFAULT_AI_MODEL } from 'helpers/ai-helpers/aiConstants';
 
 const wrapOperationInSemaphore = async <T>(operation: () => Promise<T>): Promise<T> => {
@@ -107,15 +107,13 @@ const handleSqsRecord = async (record: SQSRecord) => {
   }
 
   // Check if summary is a valid JSON
-  try {
-    const parsed = JSON.parse(summary.message);
-    const hasValidKeys = hasTwoNonEmptyKeys(parsed);
-    if (!hasValidKeys) {
-      throw new Error('Summary does not have two non-empty keys');
+  if (status !== 'ERROR') {
+    try {
+      summary.message = fixAndParseJSON(summary.message);
+    } catch (error: any) {
+      console.error('Summary is not a valid JSON', error?.message, summary.message);
+      status = 'ERROR';
     }
-  } catch (error) {
-    console.error('Summary is not a valid JSON', summary.message);
-    status = 'ERROR';
   }
 
   const updatedJob = await prisma.summaryJob.update({

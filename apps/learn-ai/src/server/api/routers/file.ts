@@ -9,6 +9,7 @@ import axios from "axios";
 import { createId } from "@paralleldrive/cuid2";
 import { extractPdf } from "~/server/utils/extractPdf";
 import { estimateCostForText, getCostUploadByFileType } from "~/utils/costs";
+import { OpenAiSummaryReply } from "helpers/ai-helpers/OpenAiSummaryReply";
 import { deductCoins, ensureUserHasCoins } from "./coins";
 import { SummaryType } from "@prisma/client";
 import { extractPagesFromFileText } from "../../../../../../services/lambda/src/utils/extractPagesFromFileText";
@@ -454,6 +455,7 @@ export const fileRouter = createTRPCRouter({
         select: {
           index: true,
           status: true,
+          uid: true,
         },
         where: {
           summaryUid: input.summaryUid,
@@ -461,6 +463,32 @@ export const fileRouter = createTRPCRouter({
       });
 
       return jobs;
+    }),
+
+  getSummaryJobContent: privateProcedure
+    .input(z.object({ uid: z.string().nonempty() }))
+    .query(async ({ ctx, input }) => {
+      const job = await ctx.prisma.summaryJob.findUnique({
+        where: {
+          uid: input.uid,
+        },
+      });
+
+      if (!job) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Job not found",
+        });
+      }
+
+      return {
+        index: job.index,
+        content:
+          job.text && job.status === "DONE"
+            ? (JSON.parse(job.text) as OpenAiSummaryReply)
+            : undefined,
+        status: job.status,
+      };
     }),
 
   getSummary: privateProcedure
