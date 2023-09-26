@@ -12,6 +12,7 @@ interface SummarizeResult {
   languageCode: string;
   pageStart?: number;
   pageEnd?: number;
+  name?: string;
   onClose: () => void;
 }
 
@@ -21,6 +22,7 @@ export const SummarizeResult: React.FC<SummarizeResult> = ({
   languageCode,
   pageStart,
   pageEnd,
+  name,
   onClose,
 }) => {
   const loadingSteps = useMemo(
@@ -65,6 +67,7 @@ export const SummarizeResult: React.FC<SummarizeResult> = ({
         languageCode,
         pageStart,
         pageEnd,
+        name,
       },
       {
         onSuccess: (s) => {

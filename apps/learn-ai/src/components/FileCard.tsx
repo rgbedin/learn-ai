@@ -1,8 +1,9 @@
+/* eslint-disable react/no-unescaped-entities */
 import React, { useMemo, useState } from "react";
 import { type File } from "@prisma/client";
 import { api } from "~/utils/api";
 import { FileIcon } from "./FileIcon";
-import { BiSolidMessageSquareEdit } from "react-icons/bi";
+import { BiPencil, BiSolidMessageSquareEdit, BiTrash } from "react-icons/bi";
 import { humanFileSize } from "~/utils/humanFileSize";
 import dayjs from "dayjs";
 
@@ -36,6 +37,8 @@ export const FileCard: React.FC<FileCardProps> = ({ file, onClick }) => {
 
   const updateFile = api.file.updateFile.useMutation();
 
+  const deleteFile = api.file.deleteFile.useMutation();
+
   const ctx = api.useContext();
 
   const isLoading = !data?.hasProcessed;
@@ -68,6 +71,26 @@ export const FileCard: React.FC<FileCardProps> = ({ file, onClick }) => {
     );
   };
 
+  const onDeleteFile = () => {
+    deleteFile.mutate(
+      {
+        uid: file.uid,
+      },
+      {
+        onSuccess() {
+          (document.getElementById(deleteModalId) as any).close();
+          void ctx.file.getFileByUid.invalidate();
+          void ctx.file.getAllUserFiles.invalidate();
+          void ctx.file.getRecentSummaries.invalidate();
+          toast.success("File deleted!");
+        },
+        onError() {
+          toast.error("Something went wrong. Please try again.");
+        },
+      },
+    );
+  };
+
   const isMobile = useIsMobile();
 
   const sizeStyle = useMemo(() => {
@@ -77,63 +100,108 @@ export const FileCard: React.FC<FileCardProps> = ({ file, onClick }) => {
     return "h-[200px] w-[170px]";
   }, [isMobile]);
 
+  const deleteModalId = useMemo(() => `delete_modal_${file.uid}`, [file]);
+
   return (
-    <div
-      onClick={onClickWrapper}
-      onMouseEnter={isMobile ? undefined : () => setIsHovering(true)}
-      onMouseLeave={isMobile ? undefined : () => setIsHovering(false)}
-      className={`relative flex ${sizeStyle} cursor-pointer flex-col items-center justify-between gap-4 border-[1px] border-gray-200 bg-white px-4 pb-4 pt-6 transition hover:translate-y-[-3px]`}
-    >
-      {!isLoading && (
-        <FileIcon type={file.type} previewUrl={data?.previewUrl} size="lg" />
-      )}
+    <>
+      <div
+        onClick={onClickWrapper}
+        onMouseEnter={isMobile ? undefined : () => setIsHovering(true)}
+        onMouseLeave={isMobile ? undefined : () => setIsHovering(false)}
+        className={`relative flex ${sizeStyle} cursor-pointer flex-col items-center justify-between gap-4 border-[1px] border-gray-200 bg-white px-4 pb-4 pt-6 transition hover:translate-y-[-3px]`}
+      >
+        {!isLoading && (
+          <FileIcon type={file.type} previewUrl={data?.previewUrl} size="lg" />
+        )}
 
-      {isLoading && (
-        <div className="h-24 w-24 animate-pulse rounded-md bg-gray-200" />
-      )}
+        {isLoading && (
+          <div className="h-24 w-24 animate-pulse rounded-md bg-gray-200" />
+        )}
 
-      {isHovering && (
-        <div
-          className="absolute right-1 top-1 cursor-pointer transition hover:scale-110"
-          onClick={(e) => {
-            e.stopPropagation();
-            setIsEditing(!isEditing);
-          }}
-        >
-          <BiSolidMessageSquareEdit size={35} color="#003049" />
-        </div>
-      )}
+        {isHovering && (
+          <div className="absolute right-2 top-2 flex items-center gap-1">
+            <div
+              className="cursor-pointer transition hover:scale-110"
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                (document.getElementById(deleteModalId) as any).showModal();
+              }}
+            >
+              <BiTrash size={25} color="#003049" />
+            </div>
 
-      {!isEditing && (
-        <div className="flex w-full flex-col">
-          <span className="line-clamp-1 text-sm">{file.name}</span>
-          <span className="text-sm text-gray-500">
-            {humanFileSize(file.size)}
-          </span>
-        </div>
-      )}
+            <div
+              className="cursor-pointer transition hover:scale-110"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsEditing(!isEditing);
+              }}
+            >
+              <BiPencil size={25} color="#003049" />
+            </div>
+          </div>
+        )}
 
-      {isEditing && (
-        <textarea
-          autoFocus
-          className="h-20 w-full resize-none rounded-md text-sm shadow-sm"
-          value={newName}
-          onChange={(e) => {
-            setNewName(e.target.value);
-          }}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
+        {!isEditing && (
+          <div className="flex w-full flex-col">
+            <span className="line-clamp-1 text-sm">{file.name}</span>
+            <span className="text-sm text-gray-500">
+              {humanFileSize(file.size)}
+            </span>
+          </div>
+        )}
+
+        {isEditing && (
+          <textarea
+            autoFocus
+            className="h-20 w-full resize-none rounded-md text-sm shadow-sm"
+            value={newName}
+            onChange={(e) => {
+              setNewName(e.target.value);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                onUpdateFile();
+              }
+            }}
+            onClick={(e) => {
+              e.stopPropagation();
+            }}
+            onBlur={() => {
               onUpdateFile();
-            }
-          }}
-          onClick={(e) => {
-            e.stopPropagation();
-          }}
-          onBlur={() => {
-            onUpdateFile();
-          }}
-        />
-      )}
-    </div>
+            }}
+          />
+        )}
+      </div>
+
+      <dialog id={deleteModalId} className="modal">
+        <div className="modal-box">
+          <h3 className="text-lg font-bold">Are you sure?</h3>
+          <p className="py-4">
+            This will permanently delete the file "{file.name}" and{" "}
+            <b>all generated documents</b> from it. You will not get any coins
+            back.
+          </p>
+
+          <div className="modal-action flex items-center justify-end gap-2">
+            <form method="dialog">
+              <button className="btn">Cancel</button>
+            </form>
+
+            <button className="btn btn-error" onClick={onDeleteFile}>
+              {deleteFile.isLoading && (
+                <span className="loading loading-spinner"></span>
+              )}
+              Delete
+            </button>
+          </div>
+        </div>
+
+        <form method="dialog" className="modal-backdrop">
+          <button>close</button>
+        </form>
+      </dialog>
+    </>
   );
 };

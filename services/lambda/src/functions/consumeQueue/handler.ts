@@ -2,10 +2,9 @@ import { SQSEvent, SQSHandler, SQSRecord } from 'aws-lambda';
 import { prisma } from 'database/src/client';
 import { summarize } from 'helpers/ai';
 import { SummaryQueueMessage } from 'src/interfaces/SummaryQueueMessage';
-import { OpenAiSummaryReply } from 'helpers/ai-helpers/OpenAiSummaryReply';
 import { SummaryStatus } from 'database';
+import { jsonrepair } from 'jsonrepair';
 import { kv } from '@vercel/kv';
-import { fixAndParseJSON } from '../../utils/fixJson';
 import { DEFAULT_AI_MODEL } from 'helpers/ai-helpers/aiConstants';
 
 const wrapOperationInSemaphore = async <T>(operation: () => Promise<T>): Promise<T> => {
@@ -109,7 +108,7 @@ const handleSqsRecord = async (record: SQSRecord) => {
   // Check if summary is a valid JSON
   if (status !== 'ERROR') {
     try {
-      summary.message = fixAndParseJSON(summary.message);
+      summary.message = jsonrepair(summary.message);
     } catch (error: any) {
       console.error('Summary is not a valid JSON', error?.message, summary.message);
       status = 'ERROR';
@@ -144,20 +143,6 @@ const handleSqsRecord = async (record: SQSRecord) => {
   console.debug('All jobs done?', allJobsDone);
 
   if (allJobsDone) {
-    const text = jobs
-      .filter((j) => j.status === 'DONE') // Only include jobs that are done (not errored)
-      .sort((a, b) => a.index - b.index) // Sort by index to make sure the text is in the right order
-      .map((j) => {
-        const parsed = JSON.parse(j.text!) as OpenAiSummaryReply;
-
-        return `<span>${j.index + 1}: </span><b>${parsed.title}</b><br>${
-          !parsed.outline
-            ? `<span>${parsed.summary ?? parsed.explanation}</span>`
-            : `<ul>${parsed.outline.map((p) => `<li>• ${p}</li>`).join('')}</ul>`
-        }<br><br>`;
-      })
-      .join('\n');
-
     const allJobsEstimatedCost = jobs.reduce((acc, j) => acc + (j.estimatedPricing ?? 0), 0);
 
     const allJobsTokensUsed = jobs.reduce((acc, j) => acc + (j.tokensUsed ?? 0), 0);
@@ -172,7 +157,6 @@ const handleSqsRecord = async (record: SQSRecord) => {
       },
       data: {
         status: hasError ? 'ERROR' : 'DONE',
-        text,
         estimatedPricing: allJobsEstimatedCost,
         tokensUsed: allJobsTokensUsed,
       },

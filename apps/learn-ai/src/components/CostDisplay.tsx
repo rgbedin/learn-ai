@@ -5,7 +5,7 @@ import UpgradeInline from "./UpgradeInline";
 import Image from "next/image";
 
 interface CoinsDisplayProps {
-  amount: number;
+  amount?: number;
   label: string;
   notEnoughCoinsMessage?: string;
   tooltip?: string;
@@ -24,7 +24,7 @@ export default function CostDisplay({
   const coins = useMemo(() => c?.coins, [c]);
 
   const hasEnoughCoins = useMemo(() => {
-    if (!coins) return undefined;
+    if (!coins || !amount) return undefined;
     return coins >= amount;
   }, [coins, amount]);
 
@@ -49,21 +49,31 @@ export default function CostDisplay({
         alt="coins"
       />
 
-      <span className="flex-shrink-0 text-sm">
-        {hasEnoughCoins === false ? notEnoughCoinsMessage : label}
-      </span>
-
-      <span className="text-sm font-semibold">{amount}</span>
-
-      <span className="text-sm">coin{amount > 1 ? "s" : ""}</span>
-
-      {tooltip && (
-        <div className="tooltip" data-tip={tooltip}>
-          <AiOutlineQuestionCircle size={16} className="text-gray-800" />
-        </div>
+      {amount === undefined && (
+        <span className="flex-shrink-0 text-sm">
+          We are calculating the cost...
+        </span>
       )}
 
-      {hasEnoughCoins === false && <UpgradeInline />}
+      {amount !== undefined && (
+        <>
+          <span className="flex-shrink-0 text-sm">
+            {hasEnoughCoins === false ? notEnoughCoinsMessage : label}
+          </span>
+
+          <span className="text-sm font-semibold">{amount}</span>
+
+          <span className="text-sm">coin{amount > 1 ? "s" : ""}</span>
+
+          {tooltip && (
+            <div className="tooltip" data-tip={tooltip}>
+              <AiOutlineQuestionCircle size={16} className="text-gray-800" />
+            </div>
+          )}
+
+          {hasEnoughCoins === false && <UpgradeInline />}
+        </>
+      )}
     </div>
   );
 }

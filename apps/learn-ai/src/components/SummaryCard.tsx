@@ -17,6 +17,7 @@ interface SummaryCard {
     | "fileUid"
     | "type"
     | "status"
+    | "name"
   >;
   fileName?: string;
   fixedWidth?: boolean;
@@ -43,7 +44,7 @@ export const SummaryCard: React.FC<SummaryCard> = ({
 
   const style = useMemo(
     () => ({
-      width: fixedWidth ? "w-[400px]" : undefined,
+      width: fixedWidth ? "w-[500px]" : undefined,
     }),
     [fixedWidth],
   );
@@ -79,10 +80,12 @@ export const SummaryCard: React.FC<SummaryCard> = ({
           {fileType && !isLoading && (
             <FileIcon type={fileType} size="sm" previewUrl={null} />
           )}
+
           {isLoading && (
             <span className="loading loading-spinner loading-sm"></span>
           )}
-          <span className="line-clamp-1">{fileName}</span>
+
+          <span className="line-clamp-1">{summary.name ?? fileName}</span>
         </div>
       )}
 
@@ -93,16 +96,18 @@ export const SummaryCard: React.FC<SummaryCard> = ({
               <span className="loading loading-spinner loading-sm"></span>
             )}
 
-            <span className="line-clamp-1">
-              {summary.pageStart && summary.pageEnd
-                ? `Pages ${summary.pageStart}-${summary.pageEnd} `
-                : label}
-            </span>
-          </div>
+            <div className="flex items-center gap-1">
+              <span className="line-clamp-1">
+                {!summary.name && summary.pageStart && summary.pageEnd
+                  ? `Pages ${summary.pageStart}-${summary.pageEnd} `
+                  : summary.name ?? label}
+              </span>
 
-          <span className="line-clamp-1">
-            {getInfoForLanguage(summary.language)?.language}
-          </span>
+              <span className="line-clamp-1">
+                {getInfoForLanguage(summary.language)?.emoji}
+              </span>
+            </div>
+          </div>
 
           <span className="line-clamp-1 text-xs font-semibold uppercase text-gray-500">
             {dayjs(summary.createdAt).fromNow()}
