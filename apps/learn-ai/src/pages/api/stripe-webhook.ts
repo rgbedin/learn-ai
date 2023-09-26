@@ -23,7 +23,7 @@ export const config = {
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
-async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, re: NextApiResponse) {
   if (req.method === "POST") {
     console.info("Start Stripe webhook event");
 
@@ -83,15 +83,15 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         // Unexpected event type
       }
 
-      res.json({ received: true, res });
+      re.json({ received: true, res });
     } catch (err: any) {
       console.error("Error parsing Stripe event", err?.message);
-      res.status(400).send(err);
+      re.status(400).send(err);
       return;
     }
   } else {
-    res.setHeader("Allow", "POST");
-    res.status(405).end("Method Not Allowed");
+    re.setHeader("Allow", "POST");
+    re.status(405).end("Method Not Allowed");
   }
 }
 
