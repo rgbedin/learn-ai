@@ -84,7 +84,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       }
 
       res.json({ received: true, res });
-    } catch (err) {
+    } catch (err: any) {
+      console.error("Error parsing Stripe event", err?.message);
       res.status(400).send(err);
       return;
     }
