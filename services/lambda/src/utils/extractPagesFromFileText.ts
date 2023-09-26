@@ -1,9 +1,5 @@
-export function extractPagesFromFileText(
-  text: string,
-  pageStart?: number,
-  pageEnd?: number,
-): string {
-  console.debug("Extracting pages from file text", { pageStart, pageEnd });
+export function extractPagesFromFileText(text: string, pageStart?: number, pageEnd?: number): string {
+  console.debug('Extracting pages from file text ', { pageStart, pageEnd });
 
   // Check if the text doesn't have any [[page X]] headers. If not, return the entire text.
   if (!/\[\[page \d+\]\]/.test(text)) {
@@ -16,12 +12,12 @@ export function extractPagesFromFileText(
 
   if (pageStart === undefined || pageEnd === undefined) {
     // If neither pageStart nor pageEnd is specified, return the concatenated pages.
-    return pages.join("\n");
+    return pages.join('\n');
   } else {
     // Adjust the indices for zero-based array indexing
     pageStart -= 1;
 
     // Extract the relevant pages and concatenate them.
-    return pages.slice(pageStart, pageEnd + 1).join("\n");
+    return pages.slice(pageStart, pageEnd + 1).join('\n');
   }
 }
