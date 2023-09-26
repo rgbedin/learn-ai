@@ -113,11 +113,16 @@ export const BuyCoinsModal: React.FC<BuyCoinsModalProps> = ({ onClose }) => {
                     className="w-full rounded-lg bg-[#003049] p-2 text-white  disabled:bg-gray-500"
                     onClick={onCheckout}
                     disabled={
-                      getCheckoutUrl.isLoading || isLoadingUrl || !actualAmount
+                      getCheckoutUrl.isLoading ||
+                      isLoadingUrl ||
+                      !actualAmount ||
+                      !price
                     }
                   >
                     {actualAmount && thePrice
-                      ? `Buy ${actualAmount} coins for ${thePrice}`
+                      ? price
+                        ? `Buy ${actualAmount} coins for ${thePrice}`
+                        : "Loading price..."
                       : "Select an amount first"}
                   </button>
                 </div>

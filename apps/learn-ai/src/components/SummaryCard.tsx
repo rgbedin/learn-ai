@@ -44,7 +44,7 @@ export const SummaryCard: React.FC<SummaryCard> = ({
 
   const style = useMemo(
     () => ({
-      width: fixedWidth ? "w-[500px]" : undefined,
+      width: fixedWidth ? "w-[350px] max-w-[350px] min-w-[350px]" : undefined,
     }),
     [fixedWidth],
   );
