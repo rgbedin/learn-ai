@@ -125,7 +125,7 @@ export const SummaryView: React.FC<SummaryView> = ({ summaryUid }) => {
 
   return (
     <div className="relative flex h-full flex-col gap-6" ref={targetRef}>
-      <Header>{label}</Header>
+      <Header>{summary?.name ?? label}</Header>
 
       {!isReady && (
         <div className="flex flex-col items-center justify-center gap-4">

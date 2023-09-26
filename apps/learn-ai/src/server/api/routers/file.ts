@@ -386,6 +386,7 @@ export const fileRouter = createTRPCRouter({
         pageEnd: true,
         type: true,
         status: true,
+        name: true,
       },
       where: {
         file: {
@@ -491,6 +492,32 @@ export const fileRouter = createTRPCRouter({
       };
     }),
 
+  deleteFile: privateProcedure
+    .input(z.object({ uid: z.string().nonempty() }))
+    .mutation(async ({ ctx, input }) => {
+      const file = await ctx.prisma.file.findUnique({
+        where: {
+          uid: input.uid,
+          userId: ctx.userId,
+        },
+      });
+
+      if (!file) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "File not found",
+        });
+      }
+
+      await ctx.prisma.file.delete({
+        where: {
+          uid: input.uid,
+        },
+      });
+
+      return file;
+    }),
+
   getSummary: privateProcedure
     .input(z.string().nonempty())
     .query(async ({ ctx, input }) => {
@@ -531,6 +558,7 @@ export const fileRouter = createTRPCRouter({
           pageEnd: true,
           type: true,
           status: true,
+          name: true,
         },
         where: {
           fileUid: input.fileUid,
@@ -647,6 +675,7 @@ export const fileRouter = createTRPCRouter({
       z.object({
         type: z.nativeEnum(SummaryType),
         key: z.string().nonempty(),
+        name: z.string().nonempty().optional(),
         languageCode: z.string().nonempty(),
         pageStart: z.number().int().positive().optional(),
         pageEnd: z.number().int().positive().optional(),
@@ -691,6 +720,7 @@ export const fileRouter = createTRPCRouter({
       await prisma.summary.create({
         data: {
           uid: summaryUid,
+          name: input.name,
           fileUid: file.uid,
           language: input.languageCode,
           pageStart: input.pageStart,

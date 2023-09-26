@@ -67,6 +67,7 @@ model ChatHistoryEntry {
 model Summary {
   uid       String        @id @default(cuid())
   createdAt DateTime      @default(now())
+  name      String?       
   text      String?       @db.LongText
   type      SummaryType
   language  String

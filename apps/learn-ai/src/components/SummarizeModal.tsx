@@ -19,6 +19,7 @@ export const SummarizeModal: React.FC<SummarizeModal> = ({
   const [language, setLanguage] = useState<string>();
   const [pageStart, setPageStart] = useState<number>();
   const [pageEnd, setPageEnd] = useState<number>();
+  const [name, setName] = useState<string>();
 
   useEffect(() => {
     logEvent("OPEN_SUMMARIZE_MODAL", { type });
@@ -66,10 +67,11 @@ export const SummarizeModal: React.FC<SummarizeModal> = ({
                     file={file}
                     type={type}
                     onCancel={onClose}
-                    onNext={(language, pageStart, pageEnd) => {
+                    onNext={(language, pageStart, pageEnd, name) => {
                       setLanguage(language);
                       setPageStart(pageStart);
                       setPageEnd(pageEnd);
+                      setName(name);
                     }}
                   />
                 )}
@@ -78,6 +80,7 @@ export const SummarizeModal: React.FC<SummarizeModal> = ({
                   <SummarizeResult
                     file={file}
                     type={type}
+                    name={name}
                     languageCode={language}
                     pageStart={pageStart}
                     pageEnd={pageEnd}

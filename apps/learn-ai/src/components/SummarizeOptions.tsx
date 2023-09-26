@@ -4,14 +4,21 @@ import { useEffect, useMemo, useState } from "react";
 import Languages from "helpers/assets/languages.json";
 import CostDisplay from "./CostDisplay";
 import { api } from "~/utils/api";
+import dayjs from "dayjs";
 import UpgradeInline from "./UpgradeInline";
+import { capitalize } from "lodash";
 import { logEvent } from "~/hooks/useAmplitudeInit";
 
 interface SummarizeOptions {
   file: File;
   type: SummaryType;
   onCancel: () => void;
-  onNext: (language: string, pageStart?: number, pageEnd?: number) => void;
+  onNext: (
+    language: string,
+    pageStart?: number,
+    pageEnd?: number,
+    name?: string,
+  ) => void;
 }
 
 export const SummarizeOptions: React.FC<SummarizeOptions> = ({
@@ -20,6 +27,7 @@ export const SummarizeOptions: React.FC<SummarizeOptions> = ({
   onCancel,
   onNext,
 }) => {
+  const [name, setName] = useState<string>();
   const [language, setLanguage] = useState<string>("en");
   const [pageStart, setPageStart] = useState<number>();
   const [pageEnd, setPageEnd] = useState<number>();
@@ -65,11 +73,22 @@ export const SummarizeOptions: React.FC<SummarizeOptions> = ({
     [pageStart, pageEnd, file.numPages],
   );
 
+  const label = useMemo(
+    () =>
+      type === "SUMMARY"
+        ? "summary"
+        : type === "OUTLINE"
+        ? "outline"
+        : "explanation",
+    [type],
+  );
+
   useEffect(() => {
+    setName(`${capitalize(label)} ${dayjs().format("hh:mmA DD/MM/YYYY")}`);
     setPageStart(1);
     const end = file.numPages && file.numPages > 5 ? 5 : file.numPages ?? 1;
     setPageEnd(end);
-  }, [file]);
+  }, [file, label]);
 
   const canProceed = useMemo(() => {
     if (hasPagesToSelect)
@@ -82,28 +101,21 @@ export const SummarizeOptions: React.FC<SummarizeOptions> = ({
     [pageStart, pageEnd],
   );
 
-  const label = useMemo(
-    () =>
-      type === "SUMMARY"
-        ? "summary"
-        : type === "OUTLINE"
-        ? "outline"
-        : "explanation",
-    [type],
-  );
-
   const onCancelWrapper = () => {
     logEvent("CANCEL_SUMMARIZE", { file, type });
     onCancel();
   };
 
-  const onNextWrapper = (
-    language: string,
-    pageStart?: number,
-    pageEnd?: number,
-  ) => {
-    logEvent("NEXT_SUMMARIZE", { file, type, language, pageStart, pageEnd });
-    onNext(language, pageStart, pageEnd);
+  const onNextWrapper = () => {
+    logEvent("NEXT_SUMMARIZE", {
+      file,
+      type,
+      language,
+      pageStart,
+      pageEnd,
+      name,
+    });
+    onNext(language, pageStart, pageEnd, name);
   };
 
   return (
@@ -111,6 +123,23 @@ export const SummarizeOptions: React.FC<SummarizeOptions> = ({
       <span className="text-xl font-light">
         Great, let's write this {label}!
       </span>
+
+      <div className="flex flex-col gap-1">
+        <label
+          htmlFor="countries"
+          className="text-sm font-medium text-gray-900"
+        >
+          What name should we give to the {label}?
+        </label>
+
+        <input
+          type="text"
+          value={name}
+          placeholder="Type name here"
+          onChange={(e) => setName(e.target.value)}
+          className="input input-bordered text-sm focus:outline-none"
+        />
+      </div>
 
       <div className="flex flex-col gap-1">
         <label
@@ -129,7 +158,7 @@ export const SummarizeOptions: React.FC<SummarizeOptions> = ({
           id="countries"
           value={language}
           onChange={(e) => setLanguage(e.target.value)}
-          className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:focus:border-blue-500 dark:focus:ring-blue-500"
+          className="select select-bordered block w-full text-sm text-gray-900 focus:outline-none"
         >
           <option value={""}>Choose a language</option>
 
@@ -164,7 +193,7 @@ export const SummarizeOptions: React.FC<SummarizeOptions> = ({
               max={file.numPages ?? undefined}
               value={pageStart}
               onChange={(e) => setPageStart(parseInt(e.target.value))}
-              className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:focus:border-blue-500 dark:focus:ring-blue-500"
+              className="input input-bordered w-full text-sm focus:outline-none"
             />
           </div>
 
@@ -180,7 +209,7 @@ export const SummarizeOptions: React.FC<SummarizeOptions> = ({
               max={file.numPages ?? undefined}
               value={pageEnd}
               onChange={(e) => setPageEnd(parseInt(e.target.value))}
-              className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:focus:border-blue-500 dark:focus:ring-blue-500"
+              className="input input-bordered w-full text-sm focus:outline-none"
             />
           </div>
 
@@ -209,7 +238,7 @@ export const SummarizeOptions: React.FC<SummarizeOptions> = ({
         </div>
       )}
 
-      {!!costCoins && !!canProceed && (
+      {!!canProceed && (
         <CostDisplay
           amount={costCoins}
           label={`Generating this ${label} will cost`}
@@ -231,7 +260,7 @@ export const SummarizeOptions: React.FC<SummarizeOptions> = ({
           disabled={!canProceed || !hasEnoughCoins || isLoadingCost}
           className="self-end rounded bg-[#003049] px-6 py-3 text-sm font-bold uppercase text-white shadow outline-none transition-all duration-150 ease-linear hover:shadow-lg focus:outline-none active:bg-[#003049] disabled:cursor-not-allowed disabled:opacity-50"
           type="button"
-          onClick={() => onNextWrapper(language, pageStart, pageEnd)}
+          onClick={() => onNextWrapper()}
         >
           Next
         </button>
