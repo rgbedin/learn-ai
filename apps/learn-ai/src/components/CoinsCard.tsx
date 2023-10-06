@@ -4,8 +4,11 @@ import { useMemo } from "react";
 import dayjs from "dayjs";
 import { COINS_PER_MONTH } from "~/utils/constants";
 import Image from "next/image";
+import { useI18n } from "~/pages/locales";
 
 export default function CoinsCard() {
+  const t = useI18n();
+
   const { data: coins } = api.coins.getMyCoins.useQuery();
   const { data: subsInfo } = api.user.getSubscriptionStatus.useQuery();
 
@@ -23,15 +26,15 @@ export default function CoinsCard() {
           height={20}
           alt="coins"
         />
-        <span className="hidden text-sm lg:flex">You have</span>
+        <span className="hidden text-sm lg:flex">{t("youHave")}</span>
         <span className="text-sm font-semibold">{coins?.coins}</span>
-        <span className="text-sm">coins remaining.</span>
+        <span className="text-sm">{t("coinsRemaining")}</span>
       </div>
 
       {nextRefill && (
         <span className="text-sm">
-          Your next refill of{" "}
-          <span className="font-bold">{COINS_PER_MONTH}</span> coins is{" "}
+          {t("yourNextRefillOf")}{" "}
+          <span className="font-bold">{COINS_PER_MONTH}</span> {t("coinsIs")}{" "}
           <span className="font-semibold">{dayjs(nextRefill).fromNow()}</span>.
         </span>
       )}

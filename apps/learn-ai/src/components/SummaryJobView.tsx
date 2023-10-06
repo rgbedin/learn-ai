@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { useI18n } from "~/pages/locales";
 import { api } from "~/utils/api";
 
 interface SummaryJobView {
@@ -6,6 +7,8 @@ interface SummaryJobView {
 }
 
 export const SummaryJobView: React.FC<SummaryJobView> = ({ jobUid }) => {
+  const t = useI18n();
+
   const { data: content } = api.file.getSummaryJobContent.useQuery(
     {
       uid: jobUid,
@@ -26,11 +29,6 @@ export const SummaryJobView: React.FC<SummaryJobView> = ({ jobUid }) => {
     [content?.status],
   );
 
-  const isSuccess = useMemo(
-    () => content?.status === "DONE",
-    [content?.status],
-  );
-
   if (content?.status === "ERROR") {
     return null;
   }
@@ -45,7 +43,7 @@ export const SummaryJobView: React.FC<SummaryJobView> = ({ jobUid }) => {
           <div className="mb-2.5 h-2 max-w-[330px] rounded-full bg-gray-200 dark:bg-gray-700"></div>
           <div className="mb-2.5 h-2 max-w-[300px] rounded-full bg-gray-200 dark:bg-gray-700"></div>
           <div className="h-2 max-w-[360px] rounded-full bg-gray-200 dark:bg-gray-700"></div>
-          <span className="sr-only">Loading...</span>
+          <span className="sr-only">{t("loading")}</span>
         </div>
       )}
 

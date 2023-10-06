@@ -5,6 +5,7 @@ import { api } from "~/utils/api";
 import Image from "next/image";
 import { toast } from "react-hot-toast";
 import { useRouter } from "next/router";
+import { useI18n } from "~/pages/locales";
 
 interface SummarizeResult {
   file: File;
@@ -25,21 +26,11 @@ export const SummarizeResult: React.FC<SummarizeResult> = ({
   name,
   onClose,
 }) => {
+  const t = useI18n();
+
   const loadingSteps = useMemo(
-    () => [
-      "Bribing the Insight Imp for a concise extraction",
-      "Unfurling the scrolls of Wisdom to begin",
-      "The Content Conjurer is mixing the essence",
-      "Whispering incantations to the Detail Djinn",
-      "Negotiating with the Information Sprite",
-      "Consulting the Wise Entity for a thorough check",
-      "Enhancing the content with a dash of magic",
-      "Seeking the Assistance of the Speedy Sprites",
-      "Making final adjustments with the Precision Pen",
-      "The Document Druid is finalizing your extract",
-      "Hitching a ride on a Whimsical Wind to deliver your content",
-    ],
-    [],
+    () => [t("loadingStep1"), t("loadingStep2")],
+    [t],
   );
 
   const [activeStep, setActiveStep] = useState<string>(loadingSteps[0]!);
@@ -149,7 +140,7 @@ export const SummarizeResult: React.FC<SummarizeResult> = ({
                 fill="currentFill"
               />
             </svg>
-            <span className="sr-only">Loading...</span>
+            <span className="sr-only">{t("loading")}.</span>
           </div>
 
           <span className="text-center text-lg font-light">{activeStep}</span>

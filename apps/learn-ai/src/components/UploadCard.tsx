@@ -6,8 +6,11 @@ import { api } from "~/utils/api";
 import { useIsMobile } from "~/hooks/useIsMobile";
 import Image from "next/image";
 import { logEventWrapper } from "~/hooks/useAmplitudeInit";
+import { useI18n } from "~/pages/locales";
 
 export const UploadCard: React.FC = () => {
+  const t = useI18n();
+
   const [showModal, setShowModal] = useState(false);
   const [showStartHere, setShowStartHere] = useState(false);
 
@@ -37,7 +40,7 @@ export const UploadCard: React.FC = () => {
       >
         <BsFileArrowUp size={70} className="mx-auto mb-2 mt-8" />
 
-        <span className="text-sm uppercase">Upload File</span>
+        <span className="text-sm uppercase">{t("uploadFile")}</span>
       </div>
 
       {showModal && <UploadModal onClose={() => setShowModal(false)} />}

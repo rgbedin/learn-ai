@@ -12,6 +12,7 @@
   "dependencies": {
     "@amplitude/analytics-browser": "^2.2.3",
     "@chakra-ui/react": "^2.8.0",
+    "@clerk/localizations": "^1.26.3",
     "@clerk/nextjs": "^4.23.3",
     "@cyntler/react-doc-viewer": "^1.13.0",
     "@emotion/react": "^11.11.1",
@@ -44,6 +45,7 @@
     "ml-kmeans": "^6.0.0",
     "natural": "^6.7.1",
     "next": "^13.4.13",
+    "next-international": "^1.0.1",
     "nprogress": "^0.2.0",
     "numeric": "^1.2.6",
     "openai": "^4.6.0",

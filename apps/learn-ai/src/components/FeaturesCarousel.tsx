@@ -1,6 +1,7 @@
 import React from "react";
 import "react-responsive-carousel/lib/styles/carousel.min.css";
 import Image from "next/image";
+import { useI18n } from "~/pages/locales";
 
 interface FeaturesCardProps {
   imageUrl: string;
@@ -20,21 +21,23 @@ const FeaturesCard: React.FC<FeaturesCardProps> = ({ imageUrl, title }) => {
 };
 
 export const FeaturesCarousel: React.FC = () => {
+  const t = useI18n();
+
   return (
     <div className="mb-3 flex border-b border-gray-200">
       <FeaturesCard
         imageUrl="https://public-learn-ai-m93.s3.amazonaws.com/img-1.png"
-        title="You can upload a photo of any handwritten text."
+        title={t("youCanUploadHandwrittenText")}
       />
 
       <FeaturesCard
         imageUrl="https://public-learn-ai-m93.s3.amazonaws.com/img-2.png"
-        title="We also support uploading PDF documents."
+        title={t("weSupportPdf")}
       />
 
       <FeaturesCard
         imageUrl="https://public-learn-ai-m93.s3.amazonaws.com/img-3.png"
-        title="Audio file? We will transcribe and process that too!"
+        title={t("weSupportAudio")}
       />
     </div>
   );

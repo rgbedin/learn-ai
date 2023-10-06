@@ -6,6 +6,7 @@ import { CreateNew } from "./CreateNewCard";
 import { Transition } from "@headlessui/react";
 import { type SummaryType } from "@prisma/client";
 import { useRouter } from "next/router";
+import { useI18n } from "~/pages/locales";
 
 export type OptionType = SummaryType | "chat" | "transcript";
 
@@ -18,6 +19,8 @@ export const OptionPicker: React.FC<OptionPickerProps> = ({
   fileUid,
   onSelectOption,
 }) => {
+  const t = useI18n();
+
   const [optionSelected, setOptionSelected] = useState<OptionType>();
 
   const { data: allSummaries } = api.file.getSummaries.useQuery({
@@ -41,10 +44,10 @@ export const OptionPicker: React.FC<OptionPickerProps> = ({
     <div className="relative flex  flex-col gap-2">
       <div className="flex flex-col gap-1">
         <OptionCard
-          title="Summarize Content"
+          title={t("summarizeContent")}
           isSelected={optionSelected === "SUMMARY"}
           onClick={() => setOptionSelected("SUMMARY")}
-          description="Summarize the content of the file. You can specify the length of the summary."
+          description={t("summarizeContentDesc")}
           imageUrl="https://public-learn-ai-m93.s3.amazonaws.com/img-4-no-bg.png"
         />
 
@@ -59,7 +62,7 @@ export const OptionPicker: React.FC<OptionPickerProps> = ({
           leaveTo="h-0 opacity-0"
         >
           <CreateNew
-            label="Create New Summary"
+            label={t("createNewSummary")}
             onClick={() => onSelectOption("SUMMARY")}
           />
 
@@ -71,10 +74,10 @@ export const OptionPicker: React.FC<OptionPickerProps> = ({
 
       <div className="flex flex-col gap-1">
         <OptionCard
-          title="Create Outline"
+          title={t("createOutline")}
           isSelected={optionSelected === "OUTLINE"}
           onClick={() => setOptionSelected("OUTLINE")}
-          description="Create a bullet point outline of the file. Useful for quickly reviewing the content."
+          description={t("createOutlineDesc")}
           imageUrl="https://public-learn-ai-m93.s3.amazonaws.com/img-5-no-bg.png"
         />
 
@@ -89,7 +92,7 @@ export const OptionPicker: React.FC<OptionPickerProps> = ({
           leaveTo="h-0 opacity-0"
         >
           <CreateNew
-            label="Create New Outline"
+            label={t("createNewOutline")}
             onClick={() => onSelectOption("OUTLINE")}
           />
 
@@ -101,10 +104,10 @@ export const OptionPicker: React.FC<OptionPickerProps> = ({
 
       <div className="flex flex-col gap-1">
         <OptionCard
-          title="Explain Like I'm 12 Years Old"
+          title={t("explainLike12")}
           isSelected={optionSelected === "EXPLAIN"}
           onClick={() => setOptionSelected("EXPLAIN")}
-          description="Get a quick explanation of the content of the file. Simplify complex concepts and jargon."
+          description={t("explainLike12Desc")}
           imageUrl="https://public-learn-ai-m93.s3.amazonaws.com/img-6-no-bg.png"
         />
 
@@ -119,7 +122,7 @@ export const OptionPicker: React.FC<OptionPickerProps> = ({
           leaveTo="h-0 opacity-0"
         >
           <CreateNew
-            label="Start New Explanation"
+            label={t("createNewExplanation")}
             onClick={() => onSelectOption("EXPLAIN")}
           />
 
@@ -131,12 +134,12 @@ export const OptionPicker: React.FC<OptionPickerProps> = ({
 
       <div className="flex flex-col gap-1">
         <OptionCard
-          title="Get a Transcript"
+          title={t("getATranscript")}
           isSelected={optionSelected === "transcript"}
           onClick={() => {
             void router.push(`/file/${fileUid}?transcript=true`);
           }}
-          description="Get a transcript of the file. Useful for audio files and handwritten notes."
+          description={t("getATranscriptDesc")}
           imageUrl="https://public-learn-ai-m93.s3.amazonaws.com/transcript-removebg-preview.png"
         />
       </div>

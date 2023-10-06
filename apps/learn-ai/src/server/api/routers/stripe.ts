@@ -3,7 +3,7 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { Stripe } from "stripe";
 import { createTRPCRouter, privateProcedure } from "~/server/api/trpc";
-import { type PrismaClient } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import { clerkClient } from "@clerk/nextjs";
 import { COINS_PER_BUNDLE } from "~/utils/constants";
 
@@ -164,6 +164,7 @@ export const stripeRouter = createTRPCRouter({
   getProductPrice: privateProcedure
     .input(
       z.object({
+        locale: z.string(),
         product: z.enum(["SUBS_MONTHLY", "SUBS_YEARLY", "COIN"]),
       }),
     )
@@ -172,7 +173,15 @@ export const stripeRouter = createTRPCRouter({
         active: true,
       });
 
-      const thePrice = prices.data.find((price) => {
+      const pricesForLocale = prices.data.filter((price) => {
+        if (input.locale.toLocaleLowerCase().includes("pt-br")) {
+          return price.currency === "brl";
+        } else {
+          return price.currency === "usd";
+        }
+      });
+
+      const thePrice = pricesForLocale.find((price) => {
         if (price.recurring?.interval === "month") {
           return input.product === "SUBS_MONTHLY";
         } else if (price.recurring?.interval === "year") {
@@ -195,6 +204,7 @@ export const stripeRouter = createTRPCRouter({
   generateCheckoutUrl: privateProcedure
     .input(
       z.object({
+        locale: z.string(),
         product: z.enum(["SUBS_MONTHLY", "SUBS_YEARLY", "COIN"]),
         amount: z.number().optional(),
         origin: z.string(),
@@ -213,7 +223,15 @@ export const stripeRouter = createTRPCRouter({
           expand: ["data.product"],
         });
 
-        const thePrice = prices.data.find((price) => {
+        const pricesForLocale = prices.data.filter((price) => {
+          if (input.locale.toLocaleLowerCase().includes("pt-br")) {
+            return price.currency === "brl";
+          } else {
+            return price.currency === "usd";
+          }
+        });
+
+        const thePrice = pricesForLocale.find((price) => {
           return price.active;
         });
 
@@ -250,7 +268,15 @@ export const stripeRouter = createTRPCRouter({
           expand: ["data.product"],
         });
 
-        const thePrice = prices.data.find((price) => {
+        const pricesForLocale = prices.data.filter((price) => {
+          if (input.locale.toLocaleLowerCase().includes("pt-br")) {
+            return price.currency === "brl";
+          } else {
+            return price.currency === "usd";
+          }
+        });
+
+        const thePrice = pricesForLocale.find((price) => {
           if (input.product === "SUBS_MONTHLY") {
             return price.recurring?.interval === "month" && price.active;
           } else if (input.product === "SUBS_YEARLY") {

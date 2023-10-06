@@ -13,6 +13,7 @@ import { getCostUploadByFileType } from "~/utils/costs";
 import CostDisplay from "./CostDisplay";
 import UpgradeInline from "./UpgradeInline";
 import { logEvent } from "@amplitude/analytics-browser";
+import { useI18n } from "~/pages/locales";
 
 const UPLOAD_LIMIT_FREE = 3000000;
 
@@ -39,6 +40,8 @@ interface UploadModalProps {
 }
 
 export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
+  const t = useI18n();
+
   const [file, setFile] = useState<File>();
   const [audioDuration, setAudioDuration] = useState<number>();
   const [uploadProgress, setUploadProgress] = useState<number>(0);
@@ -62,7 +65,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
     maxFiles: 1,
     maxSize: uploadLimit,
     onDropRejected: (err) => {
-      toast.error(err[0]?.errors[0]?.message ?? "Invalid file type or size.");
+      toast.error(err[0]?.errors[0]?.message ?? t("invalidFileTypeOrSize"));
     },
     onError(err) {
       toast.error(err.message);
@@ -129,9 +132,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
     if (!file) return;
 
     if (file.type.includes("audio") && !audioDuration) {
-      toast.error(
-        "Processing audio file. Please wait a few seconds and try again.",
-      );
+      toast.error(t("processingAudioFilePleaseWait"));
       return;
     }
 
@@ -158,12 +159,9 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
         },
       });
 
-      toast.success(
-        "File uploaded successfully. Please wait while we process it.",
-        {
-          duration: 5000,
-        },
-      );
+      toast.success(t("fileUploadedPleaseWait"), {
+        duration: 5000,
+      });
 
       void onAfterUpload.mutateAsync(
         {
@@ -187,9 +185,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
       );
     } catch (error) {
       console.error(error);
-      toast.error(
-        `An error occurred when trying to upload the file. Please try again.`,
-      );
+      toast.error(t("anErrorOnUpload"));
     }
   };
 
@@ -217,7 +213,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
           >
             {/*header*/}
             <div className="flex items-start justify-between rounded-t p-5">
-              <h3 className="text-lg font-semibold">Upload File</h3>
+              <h3 className="text-lg font-semibold">{t("uploadFile")}</h3>
               <button
                 className="float-right ml-auto border-0 bg-transparent p-1 text-3xl font-semibold leading-none text-black opacity-5 outline-none focus:outline-none"
                 onClick={onClose}
@@ -237,20 +233,18 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
                   <input {...getInputProps()} />
                   <div className="flex cursor-pointer flex-col items-center justify-center gap-2 py-7">
                     <BiUpload size={35} />
-                    <span className="text-sm">
-                      Drag & Drop or Click to choose file.
-                    </span>
+                    <span className="text-sm">{t("dragAnDropOrClick")}</span>
                   </div>
                 </div>
 
                 {subsInfo?.isValid === false && (
                   <div className="mt-4 rounded-sm bg-red-100 p-2">
                     <span className="text-sm">
-                      Free members can only upload files up to{" "}
-                      {humanFileSize(uploadLimit)}.
+                      {t("freeMembersUploadLimit")} {humanFileSize(uploadLimit)}
+                      .
                     </span>
 
-                    <UpgradeInline text="Upgrade to a paid plan to upload larger files." />
+                    <UpgradeInline text={t("upgradeToUploadLargerFiles")} />
                   </div>
                 )}
 
@@ -313,10 +307,10 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
                       amount={costForFile}
                       label={
                         file?.type.includes("audio")
-                          ? "Transcribing the audio file will cost"
-                          : "Analyzing the image will cost"
+                          ? t("transcribingAudioWillCost")
+                          : t("analyzingImageWillCost")
                       }
-                      tooltip="You will get the transcription right after the upload is complete!"
+                      tooltip={t("tooltipAfterUpload")}
                       onHasEnoughCoins={setHasEnoughCoins}
                     />
                   </div>
@@ -331,7 +325,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
                 type="button"
                 onClick={onClose}
               >
-                Close
+                {t("close")}
               </button>
 
               {!hasFinishedUpload && (
@@ -343,7 +337,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
                   type="button"
                   onClick={() => void onUpload()}
                 >
-                  Upload
+                  {t("upload")}
                 </button>
               )}
             </div>

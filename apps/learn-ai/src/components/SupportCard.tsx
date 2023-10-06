@@ -2,8 +2,11 @@
 import Image from "next/image";
 import { useState } from "react";
 import { AiOutlineCloseCircle } from "react-icons/ai";
+import { useI18n } from "~/pages/locales";
 
 export default function SupportCard() {
+  const t = useI18n();
+
   const [close, setClose] = useState(false);
 
   if (close) return null;
@@ -27,18 +30,17 @@ export default function SupportCard() {
 
       <a href="#">
         <h5 className="my-2 text-lg font-semibold tracking-tight text-gray-900 dark:text-white">
-          Have a question?
+          {t("haveAQuestion")}
         </h5>
       </a>
       <p className="mb-3 text-sm font-light text-gray-500 dark:text-gray-400">
-        We're here to help. Get in touch and we'll get back to you as soon as we
-        can.
+        {t("helpInstructions")}
       </p>
       <a
         href="mailto:resumito.app@gmail.com"
         className="inline-flex items-center text-sm text-blue-600 hover:underline"
       >
-        Contact support
+        {t("contactSupport")}
         <svg
           className="ml-2.5 h-3 w-3"
           aria-hidden="true"
