@@ -141,4 +141,5 @@ export default {
   coinsFor: "moedas por",
   loadingPrice: "Carregando preço...",
   selectAmountFirst: "Por favor, selecione uma quantidade primeiro.",
+  startHereUrl: "https://public-learn-ai-m93.s3.amazonaws.com/Comece+Aqui.png",
 } as const;

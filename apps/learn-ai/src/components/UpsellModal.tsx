@@ -101,7 +101,7 @@ export const UpsellModal: React.FC<UpsellModalProps> = ({ onClose }) => {
                     <PlanCard
                       name={t("monthlyPlan")}
                       featuresEnabled={[
-                        `${COINS_PER_MONTH} ${t("coinsPerMonth")}}`,
+                        `${COINS_PER_MONTH} ${t("coinsPerMonth")}`,
                         t("uploadFilesUpTo50Mb"),
                         t("audioFileTranscripts"),
                         t("handwrittenNotesTextDetection"),
@@ -118,7 +118,7 @@ export const UpsellModal: React.FC<UpsellModalProps> = ({ onClose }) => {
                     <PlanCard
                       name={t("annualPlan")}
                       featuresEnabled={[
-                        `${COINS_PER_MONTH} ${t("coinsPerMonth")}}`,
+                        `${COINS_PER_MONTH} ${t("coinsPerMonth")}`,
                         t("uploadFilesUpTo50Mb"),
                         t("audioFileTranscripts"),
                         t("handwrittenNotesTextDetection"),

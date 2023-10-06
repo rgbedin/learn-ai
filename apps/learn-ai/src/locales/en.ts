@@ -137,4 +137,5 @@ export default {
   coinsFor: "coins for",
   loadingPrice: "Loading price...",
   selectAmountFirst: "Please select an amount first.",
+  startHereUrl: "https://public-learn-ai-m93.s3.amazonaws.com/start-here.png",
 } as const;

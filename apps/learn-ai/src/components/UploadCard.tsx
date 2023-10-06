@@ -48,7 +48,7 @@ export const UploadCard: React.FC = () => {
       {showStartHere && (
         <div className="absolute right-[-150px] top-0">
           <Image
-            src="https://public-learn-ai-m93.s3.amazonaws.com/start-here.png"
+            src={t("startHereUrl")}
             width={150}
             height={150}
             alt="Start Here"
