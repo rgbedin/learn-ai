@@ -1,7 +1,7 @@
 import React from "react";
 import "react-responsive-carousel/lib/styles/carousel.min.css";
 import Image from "next/image";
-import { useI18n } from "~/pages/locales";
+import { useI18n } from "~/locales";
 
 interface FeaturesCardProps {
   imageUrl: string;

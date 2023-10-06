@@ -3,7 +3,7 @@ import { AiOutlineQuestionCircle } from "react-icons/ai";
 import { api } from "~/utils/api";
 import UpgradeInline from "./UpgradeInline";
 import Image from "next/image";
-import { useI18n } from "~/pages/locales";
+import { useI18n } from "~/locales";
 
 interface CoinsDisplayProps {
   amount?: number;

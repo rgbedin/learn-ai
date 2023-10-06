@@ -9,7 +9,7 @@ import "~/styles/globals.css";
 import NProgress from "nprogress";
 import Router, { useRouter } from "next/router";
 import { useEffect } from "react";
-import { I18nProvider } from "./locales";
+import { I18nProvider } from "../locales";
 
 NProgress.configure({ showSpinner: false });
 

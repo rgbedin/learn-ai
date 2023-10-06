@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { api } from "~/utils/api";
 import { logEvent } from "~/hooks/useAmplitudeInit";
 import Header from "./Header";
-import { useI18n } from "~/pages/locales";
+import { useI18n } from "~/locales";
 
 interface TranscriptView {
   fileUid: string;

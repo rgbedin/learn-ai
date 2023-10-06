@@ -6,7 +6,7 @@ import { api } from "~/utils/api";
 import { useIsMobile } from "~/hooks/useIsMobile";
 import Image from "next/image";
 import { logEventWrapper } from "~/hooks/useAmplitudeInit";
-import { useI18n } from "~/pages/locales";
+import { useI18n } from "~/locales";
 
 export const UploadCard: React.FC = () => {
   const t = useI18n();

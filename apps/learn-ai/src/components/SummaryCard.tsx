@@ -5,7 +5,7 @@ import { useMemo } from "react";
 import { getInfoForLanguage } from "helpers/getInfoForLanguage";
 import { FileIcon } from "./FileIcon";
 import { logEventWrapper } from "~/hooks/useAmplitudeInit";
-import { useI18n } from "~/pages/locales";
+import { useI18n } from "~/locales";
 
 interface SummaryCard {
   summary: Pick<

@@ -6,7 +6,7 @@ import { CreateNew } from "./CreateNewCard";
 import { Transition } from "@headlessui/react";
 import { type SummaryType } from "@prisma/client";
 import { useRouter } from "next/router";
-import { useI18n } from "~/pages/locales";
+import { useI18n } from "~/locales";
 
 export type OptionType = SummaryType | "chat" | "transcript";
 

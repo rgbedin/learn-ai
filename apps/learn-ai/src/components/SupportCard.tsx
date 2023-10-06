@@ -2,7 +2,7 @@
 import Image from "next/image";
 import { useState } from "react";
 import { AiOutlineCloseCircle } from "react-icons/ai";
-import { useI18n } from "~/pages/locales";
+import { useI18n } from "~/locales";
 
 export default function SupportCard() {
   const t = useI18n();

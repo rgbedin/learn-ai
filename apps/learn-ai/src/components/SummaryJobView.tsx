@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { useI18n } from "~/pages/locales";
+import { useI18n } from "~/locales";
 import { api } from "~/utils/api";
 
 interface SummaryJobView {

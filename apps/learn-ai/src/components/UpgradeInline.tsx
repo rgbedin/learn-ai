@@ -3,7 +3,7 @@ import { UpsellModal } from "./UpsellModal";
 import { api } from "~/utils/api";
 import { BuyCoinsModal } from "./BuyCoinsModal";
 import { logEventWrapper } from "~/hooks/useAmplitudeInit";
-import { useI18n } from "~/pages/locales";
+import { useI18n } from "~/locales";
 
 interface UpgradeInlineProps {
   text?: string;

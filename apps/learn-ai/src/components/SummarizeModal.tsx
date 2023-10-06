@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { SummarizeOptions } from "./SummarizeOptions";
 import { SummarizeResult } from "./SummarizeResult";
 import { logEvent } from "~/hooks/useAmplitudeInit";
-import { useI18n } from "~/pages/locales";
+import { useI18n } from "~/locales";
 
 interface SummarizeModal {
   file: File;

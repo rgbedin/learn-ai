@@ -5,7 +5,7 @@ import { api } from "~/utils/api";
 import Image from "next/image";
 import { toast } from "react-hot-toast";
 import { useRouter } from "next/router";
-import { useI18n } from "~/pages/locales";
+import { useI18n } from "~/locales";
 
 interface SummarizeResult {
   file: File;

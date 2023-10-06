@@ -10,7 +10,7 @@ import { useEffect } from "react";
 import useAmplitudeInit, { logEvent } from "~/hooks/useAmplitudeInit";
 import { useUser } from "@clerk/nextjs";
 import Header from "~/components/Header";
-import { getLocaleProps, useI18n } from "./locales";
+import { getLocaleProps, useI18n } from "../locales";
 
 export default function Home() {
   const t = useI18n();

@@ -9,7 +9,7 @@ import Image from "next/image";
 import { usePDF } from "react-to-pdf";
 import { AiOutlineCloudDownload } from "react-icons/ai";
 import { SummaryJobView } from "./SummaryJobView";
-import { useI18n } from "~/pages/locales";
+import { useI18n } from "~/locales";
 import { capitalize } from "lodash";
 import { useRouter } from "next/router";
 

@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import dayjs from "dayjs";
 import { COINS_PER_MONTH } from "~/utils/constants";
 import Image from "next/image";
-import { useI18n } from "~/pages/locales";
+import { useI18n } from "~/locales";
 
 export default function CoinsCard() {
   const t = useI18n();

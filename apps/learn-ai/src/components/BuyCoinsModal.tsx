@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import getStripe from "~/utils/getStripe";
 import toast from "react-hot-toast";
 import { COINS_PER_BUNDLE } from "~/utils/constants";
-import { useI18n } from "~/pages/locales";
+import { useI18n } from "~/locales";
 import { useRouter } from "next/router";
 
 interface BuyCoinsModalProps {

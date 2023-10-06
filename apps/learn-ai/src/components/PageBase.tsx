@@ -9,7 +9,7 @@ import { api } from "~/utils/api";
 import Image from "next/image";
 import LoadingOverlay from "./LoadingOverlay";
 import toast from "react-hot-toast";
-import { useI18n } from "~/pages/locales";
+import { useI18n } from "~/locales";
 import dayjs from "dayjs";
 import "dayjs/locale/pt-br";
 

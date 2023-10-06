@@ -8,7 +8,7 @@ import dayjs from "dayjs";
 import UpgradeInline from "./UpgradeInline";
 import { capitalize } from "lodash";
 import { logEvent } from "~/hooks/useAmplitudeInit";
-import { useI18n } from "~/pages/locales";
+import { useI18n } from "~/locales";
 import { getInfoForLanguage } from "helpers/getInfoForLanguage";
 import { useRouter } from "next/router";
 

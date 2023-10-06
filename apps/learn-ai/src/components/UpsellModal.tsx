@@ -3,7 +3,7 @@ import { COINS_PER_MONTH, INITIAL_COINS } from "~/utils/constants";
 import { PlanCard } from "./PlanCard";
 import { useIsMobile } from "~/hooks/useIsMobile";
 import { useEffect, useState } from "react";
-import { useI18n } from "~/pages/locales";
+import { useI18n } from "~/locales";
 
 interface UpsellModalProps {
   onClose: () => void;

@@ -13,7 +13,7 @@ import { getCostUploadByFileType } from "~/utils/costs";
 import CostDisplay from "./CostDisplay";
 import UpgradeInline from "./UpgradeInline";
 import { logEvent } from "@amplitude/analytics-browser";
-import { useI18n } from "~/pages/locales";
+import { useI18n } from "~/locales";
 
 const UPLOAD_LIMIT_FREE = 3000000;
 

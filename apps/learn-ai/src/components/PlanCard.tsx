@@ -5,7 +5,7 @@ import { useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { logEvent } from "~/hooks/useAmplitudeInit";
 import { useIsMobile } from "~/hooks/useIsMobile";
-import { useI18n } from "~/pages/locales";
+import { useI18n } from "~/locales";
 import { api } from "~/utils/api";
 import getStripe from "~/utils/getStripe";
 

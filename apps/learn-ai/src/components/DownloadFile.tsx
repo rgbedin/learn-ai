@@ -1,6 +1,6 @@
 import { api } from "~/utils/api";
 import { AiOutlineCloudDownload } from "react-icons/ai";
-import { useI18n } from "~/pages/locales";
+import { useI18n } from "~/locales";
 
 interface DownloadFileProps {
   fileKey?: string;

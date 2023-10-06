@@ -10,7 +10,7 @@ import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { toast } from "react-hot-toast";
 import { useIsMobile } from "~/hooks/useIsMobile";
-import { useI18n } from "~/pages/locales";
+import { useI18n } from "~/locales";
 
 dayjs.extend(relativeTime);
 
