@@ -1,6 +1,6 @@
 import { UserButton } from "@clerk/nextjs";
 import Link from "next/link";
-import { useMemo, type PropsWithChildren } from "react";
+import { useMemo, type PropsWithChildren, useEffect } from "react";
 import { Inter } from "next/font/google";
 import { BiArrowBack } from "react-icons/bi";
 import { useRouter } from "next/router";
@@ -9,6 +9,9 @@ import { api } from "~/utils/api";
 import Image from "next/image";
 import LoadingOverlay from "./LoadingOverlay";
 import toast from "react-hot-toast";
+import { useI18n } from "~/pages/locales";
+import dayjs from "dayjs";
+import "dayjs/locale/pt-br";
 
 const theFont = Inter({ subsets: ["latin"] });
 
@@ -17,6 +20,8 @@ interface PageBaseProps extends PropsWithChildren {
 }
 
 export const PageBase: React.FC<PageBaseProps> = ({ children, showGoBack }) => {
+  const t = useI18n();
+
   const { data: subsData } = api.user.getSubscriptionStatus.useQuery();
 
   const isValid = useMemo(() => subsData?.isValid, [subsData]);
@@ -24,6 +29,10 @@ export const PageBase: React.FC<PageBaseProps> = ({ children, showGoBack }) => {
   const getBillingPortalUrl = api.stripe.generateBillingPortalUrl.useMutation();
 
   const router = useRouter();
+
+  useEffect(() => {
+    dayjs.locale(router.locale);
+  }, [router.locale]);
 
   const onManageSubs = () => {
     getBillingPortalUrl.mutate(
@@ -78,7 +87,7 @@ export const PageBase: React.FC<PageBaseProps> = ({ children, showGoBack }) => {
                               {getBillingPortalUrl.isLoading ? (
                                 <span className="loading loading-spinner loading-xs"></span>
                               ) : null}{" "}
-                              Manage
+                              {t("manage")}
                             </a>
                           </li>
                         </ul>
@@ -104,7 +113,7 @@ export const PageBase: React.FC<PageBaseProps> = ({ children, showGoBack }) => {
             >
               <span className="flex items-center gap-1">
                 <BiArrowBack size={18} />
-                Go Back
+                {t("goBack")}
               </span>
             </Link>
           )}

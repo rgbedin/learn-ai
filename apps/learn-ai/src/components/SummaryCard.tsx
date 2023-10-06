@@ -5,6 +5,7 @@ import { useMemo } from "react";
 import { getInfoForLanguage } from "helpers/getInfoForLanguage";
 import { FileIcon } from "./FileIcon";
 import { logEventWrapper } from "~/hooks/useAmplitudeInit";
+import { useI18n } from "~/pages/locales";
 
 interface SummaryCard {
   summary: Pick<
@@ -30,6 +31,8 @@ export const SummaryCard: React.FC<SummaryCard> = ({
   fixedWidth,
   fileType,
 }) => {
+  const t = useI18n();
+
   const router = useRouter();
 
   const label = useMemo(
@@ -52,11 +55,11 @@ export const SummaryCard: React.FC<SummaryCard> = ({
   const typeLabel = useMemo(
     () =>
       summary?.type === "SUMMARY"
-        ? "Summary"
+        ? t("summary")
         : summary?.type === "OUTLINE"
-        ? "Outline"
-        : "Explanation",
-    [summary?.type],
+        ? t("outline")
+        : t("explanation"),
+    [summary?.type, t],
   );
 
   const isLoading = useMemo(
@@ -99,7 +102,7 @@ export const SummaryCard: React.FC<SummaryCard> = ({
             <div className="flex items-center gap-1">
               <span className="line-clamp-1">
                 {!summary.name && summary.pageStart && summary.pageEnd
-                  ? `Pages ${summary.pageStart}-${summary.pageEnd} `
+                  ? `${t("pages")} ${summary.pageStart}-${summary.pageEnd} `
                   : summary.name ?? label}
               </span>
 

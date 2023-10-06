@@ -3,12 +3,15 @@ import { COINS_PER_MONTH, INITIAL_COINS } from "~/utils/constants";
 import { PlanCard } from "./PlanCard";
 import { useIsMobile } from "~/hooks/useIsMobile";
 import { useEffect, useState } from "react";
+import { useI18n } from "~/pages/locales";
 
 interface UpsellModalProps {
   onClose: () => void;
 }
 
 export const UpsellModal: React.FC<UpsellModalProps> = ({ onClose }) => {
+  const t = useI18n();
+
   const [showPlans, setShowPlans] = useState<"all" | "monthly" | "yearly">(
     "all",
   );
@@ -47,7 +50,7 @@ export const UpsellModal: React.FC<UpsellModalProps> = ({ onClose }) => {
           >
             {/*header*/}
             <div className="flex items-start justify-between rounded-t p-5">
-              <h3 className="text-lg font-semibold">Subscribe Now</h3>
+              <h3 className="text-lg font-semibold">{t("subscribeNow")}</h3>
               <button
                 className="float-right ml-auto border-0 bg-transparent p-1 text-3xl font-semibold leading-none text-black opacity-5 outline-none focus:outline-none"
                 onClick={onClose}
@@ -69,63 +72,63 @@ export const UpsellModal: React.FC<UpsellModalProps> = ({ onClose }) => {
                       onChange={(e) => setShowPlans(e.target.value as any)}
                       className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:focus:border-blue-500 dark:focus:ring-blue-500"
                     >
-                      <option value="monthly">Monthly</option>
+                      <option value="monthly">{t("monthly")}</option>
 
-                      <option value="yearly">Annual</option>
+                      <option value="yearly">{t("annual")}</option>
                     </select>
                   )}
 
                   {showPlans === "all" && (
                     <PlanCard
-                      name="Free Plan"
+                      name={t("freePlan")}
                       featuresEnabled={[
-                        `${INITIAL_COINS} initial coins on signup`,
-                        "Limit of 3MB per file",
-                        "Summarize up to 5 pages",
+                        `${INITIAL_COINS} ${t("initialCoinsOnSignuo")}`,
+                        t("limit3MbPerFile"),
+                        t("summarizeUpTo5Pages"),
                       ]}
                       product="FREE"
                       featuresDisabled={[
-                        "Upload image and audio files",
-                        "Audio file transcripts",
-                        "Detect handwritten notes text",
-                        "Summarize unlimited pages",
-                        "No more coins",
+                        t("uploadImageAndAudioFiles"),
+                        t("audioFileTranscripts"),
+                        t("detectHandwrittenText"),
+                        t("summarizeUnlimitedPages"),
+                        t("noMoreCoins"),
                       ]}
                     />
                   )}
 
                   {(showPlans === "all" || showPlans === "monthly") && (
                     <PlanCard
-                      name="Montlhy Plan"
+                      name={t("monthlyPlan")}
                       featuresEnabled={[
-                        `${COINS_PER_MONTH} coins per month`,
-                        "Upload files up to 50MB",
-                        "Audio file transcripts",
-                        "Handwritten notes' text",
-                        "30+ languages supported",
-                        "Summarize unlimited pages",
-                        "Get extra coins for $0.10",
+                        `${COINS_PER_MONTH} ${t("coinsPerMonth")}}`,
+                        t("uploadFilesUpTo50Mb"),
+                        t("audioFileTranscripts"),
+                        t("handwrittenNotesTextDetection"),
+                        t("Languages10Plus"),
+                        t("summarizeUnlimitedPages"),
+                        t("extraCoinsFor010K"),
                       ]}
                       product="SUBS_MONTHLY"
-                      featuresDisabled={["Cheapest plan/month"]}
+                      featuresDisabled={[t("cheapestPlan")]}
                     />
                   )}
 
                   {(showPlans === "all" || showPlans === "yearly") && (
                     <PlanCard
-                      name="Annual Plan"
+                      name={t("annualPlan")}
                       featuresEnabled={[
-                        `${COINS_PER_MONTH} coins per month`,
-                        "Upload files up to 50MB",
-                        "Audio file transcripts",
-                        "Handwritten notes' text",
-                        "30+ languages supported",
-                        "Summarize unlimited pages",
-                        "Get extra coins for $0.10",
-                        "Cheapest plan/month",
+                        `${COINS_PER_MONTH} ${t("coinsPerMonth")}}`,
+                        t("uploadFilesUpTo50Mb"),
+                        t("audioFileTranscripts"),
+                        t("handwrittenNotesTextDetection"),
+                        t("Languages10Plus"),
+                        t("summarizeUnlimitedPages"),
+                        t("extraCoinsFor010K"),
+                        t("cheapestPlan"),
                       ]}
                       product="SUBS_YEARLY"
-                      discountCallout="SAVE 20%"
+                      discountCallout={t("save20Percent")}
                     />
                   )}
                 </div>

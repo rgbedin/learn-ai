@@ -10,6 +10,7 @@ import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { toast } from "react-hot-toast";
 import { useIsMobile } from "~/hooks/useIsMobile";
+import { useI18n } from "~/pages/locales";
 
 dayjs.extend(relativeTime);
 
@@ -19,6 +20,8 @@ interface FileCardProps {
 }
 
 export const FileCard: React.FC<FileCardProps> = ({ file, onClick }) => {
+  const t = useI18n();
+
   const [isHovering, setIsHovering] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [newName, setNewName] = useState(file.name);
@@ -45,7 +48,7 @@ export const FileCard: React.FC<FileCardProps> = ({ file, onClick }) => {
 
   const onClickWrapper = () => {
     if (isLoading) {
-      toast.error("File is still processing.");
+      toast.error(t("fileStillProcessing"));
       return;
     }
 
@@ -82,10 +85,10 @@ export const FileCard: React.FC<FileCardProps> = ({ file, onClick }) => {
           void ctx.file.getFileByUid.invalidate();
           void ctx.file.getAllUserFiles.invalidate();
           void ctx.file.getRecentSummaries.invalidate();
-          toast.success("File deleted!");
+          toast.success(t("fileDeleted"));
         },
         onError() {
-          toast.error("Something went wrong. Please try again.");
+          toast.error(t("somethinWentWrong"));
         },
       },
     );
@@ -177,29 +180,28 @@ export const FileCard: React.FC<FileCardProps> = ({ file, onClick }) => {
 
       <dialog id={deleteModalId} className="modal">
         <div className="modal-box">
-          <h3 className="text-lg font-bold">Are you sure?</h3>
+          <h3 className="text-lg font-bold">{t("areYouSure")}</h3>
           <p className="py-4">
-            This will permanently delete the file "{file.name}" and{" "}
-            <b>all generated documents</b> from it. You will not get any coins
-            back.
+            {t("thisWillPermanentlyDelete")} "{file.name}" {t("and")}{" "}
+            <b>{t("allGeneratedDocuments")}</b>. {t("youWillNotGetCoinsBack")}
           </p>
 
           <div className="modal-action flex items-center justify-end gap-2">
             <form method="dialog">
-              <button className="btn">Cancel</button>
+              <button className="btn">{t("cancel")}</button>
             </form>
 
             <button className="btn btn-error" onClick={onDeleteFile}>
               {deleteFile.isLoading && (
                 <span className="loading loading-spinner"></span>
               )}
-              Delete
+              {t("delete")}
             </button>
           </div>
         </div>
 
         <form method="dialog" className="modal-backdrop">
-          <button>close</button>
+          <button>{t("close")}</button>
         </form>
       </dialog>
     </>

@@ -1,9 +1,11 @@
 /* eslint-disable react/no-unescaped-entities */
 
+import { useRouter } from "next/router";
 import { useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { logEvent } from "~/hooks/useAmplitudeInit";
 import { useIsMobile } from "~/hooks/useIsMobile";
+import { useI18n } from "~/pages/locales";
 import { api } from "~/utils/api";
 import getStripe from "~/utils/getStripe";
 
@@ -22,10 +24,15 @@ export const PlanCard: React.FC<PlanCardProps> = ({
   discountCallout,
   featuresDisabled,
 }) => {
+  const t = useI18n();
+
+  const router = useRouter();
+
   const [isLoadingUrl, setIsLoadingUrl] = useState(false);
   const { data: price } = api.stripe.getProductPrice.useQuery(
     {
       product: product as any,
+      locale: router.locale ?? "en-US",
     },
     {
       enabled: product !== "FREE",
@@ -41,6 +48,7 @@ export const PlanCard: React.FC<PlanCardProps> = ({
       {
         product: product as any,
         origin: window.location.origin,
+        locale: router.locale ?? "en-US",
       },
       {
         onSuccess: async (data) => {
@@ -52,7 +60,7 @@ export const PlanCard: React.FC<PlanCardProps> = ({
           });
 
           if (error) {
-            toast.error(error.message ?? "An error occurred");
+            toast.error(error.message ?? t("anErrorOcurred"));
           }
 
           setIsLoadingUrl(false);
@@ -65,9 +73,9 @@ export const PlanCard: React.FC<PlanCardProps> = ({
   };
 
   const thePrice = useMemo(() => {
-    const formatter = new Intl.NumberFormat("en-US", {
+    const formatter = new Intl.NumberFormat(router.locale ?? "en-US", {
       style: "currency",
-      currency: "USD",
+      currency: router.locale === "pt-BR" ? "BRL" : "USD",
       signDisplay: "never",
     });
 
@@ -76,19 +84,19 @@ export const PlanCard: React.FC<PlanCardProps> = ({
     }
 
     return formatter.format(0);
-  }, [price]);
+  }, [price, router.locale]);
 
   const recurring = useMemo(() => {
     if (product === "SUBS_MONTHLY") {
-      return "month";
+      return t("month");
     }
 
     if (product === "SUBS_YEARLY") {
-      return "year";
+      return t("year");
     }
 
-    return "month";
-  }, [product]);
+    return t("month");
+  }, [product, t]);
 
   const bgStyle = useMemo(
     () => (price === 0 ? "bg-gray-200" : "bg-white"),
@@ -162,8 +170,8 @@ export const PlanCard: React.FC<PlanCardProps> = ({
           className="inline-flex w-full justify-center rounded-lg bg-[#003049] px-5 py-2.5 text-center text-sm font-medium text-white focus:outline-none focus:ring-4 focus:ring-blue-200 dark:focus:ring-blue-900"
         >
           {getCheckoutUrl.isLoading || isLoadingUrl
-            ? "Loading..."
-            : "Choose Plan"}
+            ? t("loading")
+            : t("choosePlan")}
         </button>
       )}
 

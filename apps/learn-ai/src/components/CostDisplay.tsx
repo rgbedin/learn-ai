@@ -3,6 +3,7 @@ import { AiOutlineQuestionCircle } from "react-icons/ai";
 import { api } from "~/utils/api";
 import UpgradeInline from "./UpgradeInline";
 import Image from "next/image";
+import { useI18n } from "~/pages/locales";
 
 interface CoinsDisplayProps {
   amount?: number;
@@ -17,8 +18,10 @@ export default function CostDisplay({
   label,
   tooltip,
   onHasEnoughCoins,
-  notEnoughCoinsMessage = "You do not have",
+  notEnoughCoinsMessage,
 }: CoinsDisplayProps) {
+  const t = useI18n();
+
   const { data: c } = api.coins.getMyCoins.useQuery();
 
   const coins = useMemo(() => c?.coins, [c]);
@@ -51,19 +54,24 @@ export default function CostDisplay({
 
       {amount === undefined && (
         <span className="flex-shrink-0 text-sm">
-          We are calculating the cost...
+          {t("weAreCalculatingTheCost")}
         </span>
       )}
 
       {amount !== undefined && (
         <>
           <span className="flex-shrink-0 text-sm">
-            {hasEnoughCoins === false ? notEnoughCoinsMessage : label}
+            {hasEnoughCoins === false
+              ? notEnoughCoinsMessage ?? t("youDoNotHave")
+              : label}
           </span>
 
           <span className="text-sm font-semibold">{amount}</span>
 
-          <span className="text-sm">coin{amount > 1 ? "s" : ""}</span>
+          <span className="text-sm">
+            {t("coin")}
+            {amount > 1 ? "s" : ""}
+          </span>
 
           {tooltip && (
             <div className="tooltip" data-tip={tooltip}>

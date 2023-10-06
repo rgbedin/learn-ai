@@ -3,14 +3,15 @@ import { UpsellModal } from "./UpsellModal";
 import { api } from "~/utils/api";
 import { BuyCoinsModal } from "./BuyCoinsModal";
 import { logEventWrapper } from "~/hooks/useAmplitudeInit";
+import { useI18n } from "~/pages/locales";
 
 interface UpgradeInlineProps {
   text?: string;
 }
 
-export default function UpgradeInline({
-  text = "Want to increase your coins now?",
-}: UpgradeInlineProps) {
+export default function UpgradeInline({ text }: UpgradeInlineProps) {
+  const t = useI18n();
+
   const [showModal, setShowModal] = useState(false);
 
   const { data: subsInfo } = api.user.getSubscriptionStatus.useQuery();
@@ -27,7 +28,7 @@ export default function UpgradeInline({
           { hasSubscription: hasSub },
         )}
       >
-        {text}
+        {text ?? t("wantToIncreaseCoinsNow")}
       </span>
 
       {showModal && !hasSub && (

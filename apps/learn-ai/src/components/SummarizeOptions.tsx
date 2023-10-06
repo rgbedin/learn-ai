@@ -8,6 +8,9 @@ import dayjs from "dayjs";
 import UpgradeInline from "./UpgradeInline";
 import { capitalize } from "lodash";
 import { logEvent } from "~/hooks/useAmplitudeInit";
+import { useI18n } from "~/pages/locales";
+import { getInfoForLanguage } from "helpers/getInfoForLanguage";
+import { useRouter } from "next/router";
 
 interface SummarizeOptions {
   file: File;
@@ -27,8 +30,14 @@ export const SummarizeOptions: React.FC<SummarizeOptions> = ({
   onCancel,
   onNext,
 }) => {
+  const t = useI18n();
+
+  const router = useRouter();
+
   const [name, setName] = useState<string>();
-  const [language, setLanguage] = useState<string>("en");
+  const [language, setLanguage] = useState<string>(
+    router.locale === "pt-BR" ? "pt-br" : "en",
+  );
   const [pageStart, setPageStart] = useState<number>();
   const [pageEnd, setPageEnd] = useState<number>();
   const [hasEnoughCoins, setHasEnoughCoins] = useState<boolean>(true);
@@ -76,11 +85,11 @@ export const SummarizeOptions: React.FC<SummarizeOptions> = ({
   const label = useMemo(
     () =>
       type === "SUMMARY"
-        ? "summary"
+        ? t("summary")
         : type === "OUTLINE"
-        ? "outline"
-        : "explanation",
-    [type],
+        ? t("outline")
+        : t("explanation"),
+    [t, type],
   );
 
   useEffect(() => {
@@ -121,7 +130,7 @@ export const SummarizeOptions: React.FC<SummarizeOptions> = ({
   return (
     <div className="relative flex h-full flex-col gap-6">
       <span className="text-xl font-light">
-        Great, let's write this {label}!
+        {t("greatLetsWriteThis")} {label}!
       </span>
 
       <div className="flex flex-col gap-1">
@@ -129,13 +138,13 @@ export const SummarizeOptions: React.FC<SummarizeOptions> = ({
           htmlFor="countries"
           className="text-sm font-medium text-gray-900"
         >
-          What name should we give to the {label}?
+          {t("whatNameShouldWeGiveThis")} {label}?
         </label>
 
         <input
           type="text"
           value={name}
-          placeholder="Type name here"
+          placeholder={t("typeNameHere")}
           onChange={(e) => setName(e.target.value)}
           className="input input-bordered text-sm focus:outline-none"
         />
@@ -146,12 +155,11 @@ export const SummarizeOptions: React.FC<SummarizeOptions> = ({
           htmlFor="countries"
           className="text-sm font-medium text-gray-900"
         >
-          Which language should the {label} be in?
+          {t("whichLanguageShouldWeUse")} {label}?
         </label>
 
         <span className="text-sm text-gray-600">
-          It does not matter the language the original file is in! Pick whatever
-          suits you best.
+          {t("originalLanguageDoesNotMatter")}
         </span>
 
         <select
@@ -160,11 +168,11 @@ export const SummarizeOptions: React.FC<SummarizeOptions> = ({
           onChange={(e) => setLanguage(e.target.value)}
           className="select select-bordered block w-full text-sm text-gray-900 focus:outline-none"
         >
-          <option value={""}>Choose a language</option>
+          <option value={""}>{t("chooseALanguage")}</option>
 
           {Languages.languages.map((l) => (
             <option key={l.code} value={l.code}>
-              {l.language}
+              {getInfoForLanguage(l.code, router.locale)?.language}
             </option>
           ))}
         </select>
@@ -173,17 +181,12 @@ export const SummarizeOptions: React.FC<SummarizeOptions> = ({
       {hasPagesToSelect && (
         <div className="flex flex-col gap-1">
           <label htmlFor="length" className="text-sm font-medium text-gray-900">
-            Which pages should the {label} be between?
+            {t("whichLanguageShouldWeUse")} {label}?
           </label>
-
-          <span className="text-sm text-gray-600">
-            The shorter the {label}, the more concise it will be and the lesser
-            chances of it being accurate.
-          </span>
 
           <div className="flex flex-row items-center gap-2">
             <span className="flex-shrink-0 items-center text-sm text-gray-600">
-              Start page:
+              {t("startPage")}
             </span>
 
             <input
@@ -199,7 +202,7 @@ export const SummarizeOptions: React.FC<SummarizeOptions> = ({
 
           <div className="flex flex-row items-center gap-2">
             <span className="mr-2 flex-shrink-0 items-center text-sm text-gray-600">
-              End page:
+              {t("endPage")}
             </span>
 
             <input
@@ -216,24 +219,22 @@ export const SummarizeOptions: React.FC<SummarizeOptions> = ({
           {hasValidSub === false && (
             <div className="mt-2 rounded-sm bg-red-100 p-2">
               <span className="text-sm">
-                Free members can only generate {maxNumberOfPagesAllowed} pages.
+                {t("freeMembersPageLimit")} {maxNumberOfPagesAllowed}{" "}
+                {t("pagesAtATime")}.
               </span>
 
-              <UpgradeInline text="Upgrade to a paid plan to unlock all pages." />
+              <UpgradeInline text={t("upgradeToUnlockAllPages")} />
             </div>
           )}
 
           {isNumPagesHigh && (
             <span className="text-sm text-red-800">
-              We recommend keeping the {label} under 100 pages to a faster
-              result.
+              {t("fastResultRecommendation")}
             </span>
           )}
 
           {invalidPages && (
-            <span className="text-sm text-red-800">
-              Please enter valid page numbers.
-            </span>
+            <span className="text-sm text-red-800">{t("invalidPages")}</span>
           )}
         </div>
       )}
@@ -241,8 +242,8 @@ export const SummarizeOptions: React.FC<SummarizeOptions> = ({
       {!!canProceed && (
         <CostDisplay
           amount={costCoins}
-          label={`Generating this ${label} will cost`}
-          tooltip="Document generation requires us to communicate with an AI provider"
+          label={t("costDisplayLabel")}
+          tooltip={t("tooltipCostDisplay")}
           onHasEnoughCoins={setHasEnoughCoins}
         />
       )}
@@ -253,7 +254,7 @@ export const SummarizeOptions: React.FC<SummarizeOptions> = ({
           type="button"
           onClick={onCancelWrapper}
         >
-          Cancel
+          {t("cancel")}
         </button>
 
         <button
@@ -262,7 +263,7 @@ export const SummarizeOptions: React.FC<SummarizeOptions> = ({
           type="button"
           onClick={() => onNextWrapper()}
         >
-          Next
+          {t("next")}
         </button>
       </div>
     </div>

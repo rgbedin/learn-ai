@@ -4,24 +4,35 @@ import { useMemo, useState } from "react";
 import getStripe from "~/utils/getStripe";
 import toast from "react-hot-toast";
 import { COINS_PER_BUNDLE } from "~/utils/constants";
+import { useI18n } from "~/pages/locales";
+import { useRouter } from "next/router";
 
 interface BuyCoinsModalProps {
   onClose: () => void;
 }
 
 export const BuyCoinsModal: React.FC<BuyCoinsModalProps> = ({ onClose }) => {
+  const t = useI18n();
   const [amount, setAmount] = useState<number>(1);
   const [isLoadingUrl, setIsLoadingUrl] = useState(false);
 
+  const router = useRouter();
+
   const { data: price } = api.stripe.getProductPrice.useQuery({
     product: "COIN",
+    locale: router.locale ?? "en-US",
   });
 
   const getCheckoutUrl = api.stripe.generateCheckoutUrl.useMutation();
 
   const onCheckout = () => {
     getCheckoutUrl.mutate(
-      { amount, product: "COIN", origin: window.location.origin },
+      {
+        amount,
+        product: "COIN",
+        origin: window.location.origin,
+        locale: router.locale ?? "en-US",
+      },
       {
         onSuccess: async (data) => {
           setIsLoadingUrl(true);
@@ -32,7 +43,7 @@ export const BuyCoinsModal: React.FC<BuyCoinsModalProps> = ({ onClose }) => {
           });
 
           if (error) {
-            toast.error(error.message ?? "An error occurred");
+            toast.error(error.message ?? t("anErrorOcurred"));
           }
 
           setIsLoadingUrl(false);
@@ -45,9 +56,9 @@ export const BuyCoinsModal: React.FC<BuyCoinsModalProps> = ({ onClose }) => {
   };
 
   const thePrice = useMemo(() => {
-    const formatter = new Intl.NumberFormat("en-US", {
+    const formatter = new Intl.NumberFormat(router.locale ?? "en-US", {
       style: "currency",
-      currency: "USD",
+      currency: router.locale === "pt-BR" ? "BRL" : "USD",
       signDisplay: "never",
     });
 
@@ -56,7 +67,7 @@ export const BuyCoinsModal: React.FC<BuyCoinsModalProps> = ({ onClose }) => {
     }
 
     return formatter.format(0);
-  }, [amount, price]);
+  }, [amount, price, router.locale]);
 
   const actualAmount = useMemo(() => {
     return amount * 50;
@@ -78,7 +89,7 @@ export const BuyCoinsModal: React.FC<BuyCoinsModalProps> = ({ onClose }) => {
           >
             {/*header*/}
             <div className="flex items-start justify-between rounded-t p-5">
-              <h3 className="text-lg font-semibold">Get More Coins</h3>
+              <h3 className="text-lg font-semibold">{t("getMoreCoins")}</h3>
               <button
                 className="float-right ml-auto border-0 bg-transparent p-1 text-3xl font-semibold leading-none text-black opacity-5 outline-none focus:outline-none"
                 onClick={onClose}
@@ -93,11 +104,14 @@ export const BuyCoinsModal: React.FC<BuyCoinsModalProps> = ({ onClose }) => {
             <div className="relative flex-auto px-6 pb-6">
               <section className="container">
                 <div className="flex flex-col gap-2">
-                  <span>How many bundles do you want to buy?</span>
+                  <span>{t("howManyBundles")}</span>
 
                   <span>
-                    Each bundle contains{" "}
-                    <span className="font-bold">{COINS_PER_BUNDLE} coins</span>.
+                    {t("eachBundleContains")}{" "}
+                    <span className="font-bold">
+                      {COINS_PER_BUNDLE} {t("coin")}s
+                    </span>
+                    .
                   </span>
 
                   <input
@@ -121,9 +135,11 @@ export const BuyCoinsModal: React.FC<BuyCoinsModalProps> = ({ onClose }) => {
                   >
                     {actualAmount && thePrice
                       ? price
-                        ? `Buy ${actualAmount} coins for ${thePrice}`
-                        : "Loading price..."
-                      : "Select an amount first"}
+                        ? `${t("buy")} ${actualAmount} ${t(
+                            "coinsFor",
+                          )} ${thePrice}`
+                        : t("loadingPrice")
+                      : t("selectAmountFirst")}
                   </button>
                 </div>
               </section>

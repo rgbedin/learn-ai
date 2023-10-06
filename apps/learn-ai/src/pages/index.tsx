@@ -10,8 +10,11 @@ import { useEffect } from "react";
 import useAmplitudeInit, { logEvent } from "~/hooks/useAmplitudeInit";
 import { useUser } from "@clerk/nextjs";
 import Header from "~/components/Header";
+import { getLocaleProps, useI18n } from "./locales";
 
 export default function Home() {
+  const t = useI18n();
+
   const { data: recentSummaries } = api.file.getRecentSummaries.useQuery();
 
   const isMobile = useIsMobile();
@@ -32,7 +35,7 @@ export default function Home() {
         {!!recentSummaries && recentSummaries.length > 0 && (
           <>
             <div className="flex flex-col gap-2">
-              <Header>Latest Generations</Header>
+              <Header>{t("header.latestGenerations")}</Header>
               <RecentSummaries />
             </div>
 
@@ -42,7 +45,7 @@ export default function Home() {
 
         <div className="flex flex-col gap-2">
           <Header imageSrc="https://public-learn-ai-m93.s3.amazonaws.com/books.png">
-            Your Files
+            {t("yourFiles")}
           </Header>
 
           <div className="flex flex-wrap gap-4">

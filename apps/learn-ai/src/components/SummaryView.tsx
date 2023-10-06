@@ -9,15 +9,18 @@ import Image from "next/image";
 import { usePDF } from "react-to-pdf";
 import { AiOutlineCloudDownload } from "react-icons/ai";
 import { SummaryJobView } from "./SummaryJobView";
+import { useI18n } from "~/pages/locales";
+import { capitalize } from "lodash";
+import { useRouter } from "next/router";
 
 interface SummaryView {
   summaryUid: string;
 }
 
 export const SummaryView: React.FC<SummaryView> = ({ summaryUid }) => {
-  const [rating, setRating] = useState(0);
+  const t = useI18n();
 
-  const { toPDF, targetRef } = usePDF({ filename: "resumito.pdf" });
+  const [rating, setRating] = useState(0);
 
   const { data: summary } = api.file.getSummary.useQuery(summaryUid, {
     refetchInterval(data) {
@@ -28,6 +31,8 @@ export const SummaryView: React.FC<SummaryView> = ({ summaryUid }) => {
       return 1000;
     },
   });
+
+  const { toPDF, targetRef } = usePDF({ filename: "resumito.pdf" });
 
   const { data: jobs } = api.file.getSummaryJobs.useQuery(
     { summaryUid },
@@ -86,7 +91,7 @@ export const SummaryView: React.FC<SummaryView> = ({ summaryUid }) => {
       {
         onSuccess: () => {
           void ctx.file.getSummary.invalidate();
-          toast.success("Rating submitted!");
+          toast.success(t("ratingSubmitted"));
         },
       },
     );
@@ -101,27 +106,14 @@ export const SummaryView: React.FC<SummaryView> = ({ summaryUid }) => {
   const label = useMemo(
     () =>
       summary?.type === "SUMMARY"
-        ? "Summary"
+        ? capitalize(t("summary"))
         : summary?.type === "OUTLINE"
-        ? "Outline"
-        : "Explanation",
-    [summary?.type],
+        ? capitalize(t("outline"))
+        : capitalize(t("explanation")),
+    [summary?.type, t],
   );
 
-  const progress = useMemo(() => {
-    if (isPending) return 0;
-    if (isLoading)
-      return Math.floor((numJobsReady / (jobs?.length ?? 1)) * 100);
-    return 100;
-  }, [isPending, isLoading, numJobsReady, jobs?.length]);
-
-  const progressLabel = useMemo(
-    () =>
-      jobs?.length
-        ? `${numJobsReady} of ${jobs?.length ?? 0} wizard shenanigans ready...`
-        : "Waiting to start...",
-    [jobs?.length, numJobsReady],
-  );
+  const router = useRouter();
 
   return (
     <div className="relative flex h-full flex-col gap-6" ref={targetRef}>
@@ -133,7 +125,9 @@ export const SummaryView: React.FC<SummaryView> = ({ summaryUid }) => {
             (jobs.length < 10 && (
               <div className="alert w-fit">
                 <span className="loading loading-spinner loading-sm"></span>
-                <span>Generating your {label}...</span>
+                <span>
+                  {t("generatingYour")} {label}...
+                </span>
               </div>
             ))}
 
@@ -141,11 +135,13 @@ export const SummaryView: React.FC<SummaryView> = ({ summaryUid }) => {
             <div className="alert alert-warning w-fit">
               <span className="loading loading-spinner loading-sm"></span>
               <div className="flex flex-col">
-                <span>Generating your {label}...</span>
                 <span>
-                  This might take a while due to the size of the {label}.
+                  {t("generatingYour")} {label}...
                 </span>
-                <span>You do not need to leave this page open.</span>
+                <span>
+                  {t("thisMightTakeAWhile")} {label}.
+                </span>
+                <span>{t("youDoNotNeedLeaveThisPageOpen")}</span>
               </div>
             </div>
           )}
@@ -168,8 +164,10 @@ export const SummaryView: React.FC<SummaryView> = ({ summaryUid }) => {
             />
           </svg>
           <div className="flex flex-col">
-            <span>Some parts of the text failed to be processed.</span>
-            <span>This might not be an accurate {label}.</span>
+            <span>{t("somePartsFailed")}</span>
+            <span>
+              {t("thisMightNotBeAccurate")} {label}.
+            </span>
           </div>
         </div>
       )}
@@ -177,13 +175,13 @@ export const SummaryView: React.FC<SummaryView> = ({ summaryUid }) => {
       {isReady && summary && (
         <div className="flex flex-col gap-1">
           <span>
-            <span className="font-bold">Language: </span>
-            {getInfoForLanguage(summary.language)?.language}
+            <span className="font-bold">{t("language")}: </span>
+            {getInfoForLanguage(summary.language, router.locale)?.language}
           </span>
 
           {summary.pageStart && summary.pageEnd && (
             <span>
-              <span className="font-bold">Pages: </span>
+              <span className="font-bold">{t("pages")}: </span>
               {summary.pageStart}-{summary.pageEnd}
             </span>
           )}
@@ -194,11 +192,13 @@ export const SummaryView: React.FC<SummaryView> = ({ summaryUid }) => {
 
       <button className="btn" onClick={() => toPDF()}>
         <AiOutlineCloudDownload size={24} />
-        Download as PDF
+        {t("downloadAsPdf")}
       </button>
 
       <div className="mt-1 flex flex-col">
-        <span>How good was this {label.toLocaleLowerCase()}?</span>
+        <span>
+          {t("howGoodWasThis")} {label.toLocaleLowerCase()}?
+        </span>
         <Rating
           emptyStyle={{ display: "flex" }}
           fillStyle={{ display: "-webkit-inline-box" }}
@@ -207,7 +207,7 @@ export const SummaryView: React.FC<SummaryView> = ({ summaryUid }) => {
           onClick={onRatingChange}
         />
         <span className="text-xs text-gray-500">
-          This helps us improve the quality of our service.
+          {t("thisHelpsImproveQuality")}
         </span>
       </div>
     </div>

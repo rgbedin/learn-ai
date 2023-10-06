@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { SummarizeOptions } from "./SummarizeOptions";
 import { SummarizeResult } from "./SummarizeResult";
 import { logEvent } from "~/hooks/useAmplitudeInit";
+import { useI18n } from "~/pages/locales";
 
 interface SummarizeModal {
   file: File;
@@ -16,6 +17,8 @@ export const SummarizeModal: React.FC<SummarizeModal> = ({
   onClose,
   type,
 }) => {
+  const t = useI18n();
+
   const [language, setLanguage] = useState<string>();
   const [pageStart, setPageStart] = useState<number>();
   const [pageEnd, setPageEnd] = useState<number>();
@@ -28,11 +31,11 @@ export const SummarizeModal: React.FC<SummarizeModal> = ({
   const label = useMemo(
     () =>
       type === "SUMMARY"
-        ? "Summarize File"
+        ? t("summarizeFile")
         : type === "OUTLINE"
-        ? "Create Outline"
-        : "Create Explanation",
-    [type],
+        ? t("createOutline")
+        : t("createExplanation"),
+    [type, t],
   );
 
   return (
